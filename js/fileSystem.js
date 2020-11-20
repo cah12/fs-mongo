@@ -825,8 +825,8 @@ class FileSystemServices {
     const listOfOpenWithTypes = options.listOfOpenWithTypes || [];
 
     const imageLoaderSrc = options.imageLoaderSrc || null;
-    const imageFolderSrc = options.imageFolderSrc || null;
-    const imageFileSrc = "https://cdn.jsdelivr.net/gh/cah12/mongo-fs/img/file.png";//options.imageFileSrc || null;
+    const imageFolderSrc = "https://cdn.jsdelivr.net/gh/cah12/fs-mongo/img/folder.png";
+    const imageFileSrc = "https://cdn.jsdelivr.net/gh/cah12/fs-mongo/img/file.png";//options.imageFileSrc || null;
 
     console.log(444, imageLoaderSrc, imageFolderSrc, imageFileSrc)
 
