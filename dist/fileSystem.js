@@ -824,9 +824,9 @@ class FileSystemServices {
     const listOfFileTypes = options.listOfFileTypes || [];
     const listOfOpenWithTypes = options.listOfOpenWithTypes || [];
 
-    let imageLoaderSrc = "https://cdn.jsdelivr.net/gh/cah12/fs-mongo/img/imageLoader.png";
-    let imageFolderSrc = "https://cdn.jsdelivr.net/gh/cah12/fs-mongo/img/folder.png";
-    let imageFileSrc = "https://cdn.jsdelivr.net/gh/cah12/fs-mongo/img/file.png";//options.imageFileSrc || null;
+    let imageLoaderSrc = "https://cdn.jsdelivr.net/gh/cah12/fs-mongo/dist/imageLoader.png";
+    let imageFolderSrc = "https://cdn.jsdelivr.net/gh/cah12/fs-mongo/dist/folder.png";
+    let imageFileSrc = "https://cdn.jsdelivr.net/gh/cah12/fs-mongo/dist/file.png";//options.imageFileSrc || null;
 
     if(options.imageLoaderSrc !== undefined){
       if(options.imageLoaderSrc.length){
@@ -853,7 +853,7 @@ class FileSystemServices {
       }
     } 
 
-   //console.log(444, imageLoaderSrc, imageFolderSrc, imageFileSrc)
+   console.log(444, imageLoaderSrc, imageFolderSrc, imageFileSrc)
 
 
     this.storeAccessToken =
