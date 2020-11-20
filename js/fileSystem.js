@@ -828,31 +828,32 @@ class FileSystemServices {
     let imageFolderSrc = "https://cdn.jsdelivr.net/gh/cah12/fs-mongo/img/folder.png";
     let imageFileSrc = "https://cdn.jsdelivr.net/gh/cah12/fs-mongo/img/file.png";//options.imageFileSrc || null;
 
-    if(options.imageLoaderSrc){
+    if(options.imageLoaderSrc !== undefined){
       if(options.imageLoaderSrc.length){
-        options.imageLoaderSrc;
+        imageLoaderSrc = options.imageLoaderSrc;
       }else{
         imageLoaderSrc = null;
       }
     }
     
-    if(options.imageFolderSrc){
+    if(options.imageFolderSrc !== undefined){
+      //console.log(444, options.imageFolderSrc)
       if(options.imageFolderSrc.length){
-        options.imageFolderSrc;
+        imageFolderSrc = options.imageFolderSrc;
       }else{
         imageFolderSrc = null;
       }
     } 
 
-    if(options.imageFileSrc){
+    if(options.imageFileSrc !== undefined){
       if(options.imageFileSrc.length){
-        options.imageFileSrc;
+        imageFileSrc = options.imageFileSrc;
       }else{
         imageFileSrc = null;
       }
     } 
 
-   // console.log(444, imageLoaderSrc, imageFolderSrc, imageFileSrc)
+   //console.log(444, imageLoaderSrc, imageFolderSrc, imageFileSrc)
 
 
     this.storeAccessToken =
