@@ -1074,8 +1074,10 @@ class FileSystemServices {
                 input[0].focus();
               },
               error: function (res) {
+                //console.log(101, res.responseJSON)
                 _data.newName = g_data.name;
-                //console.log(666)
+                //console.log(101, _data)
+               
                 $.ajax({
                   method: "POST",
                   headers: {
@@ -1090,6 +1092,7 @@ class FileSystemServices {
                     editing = false;
                     changed = false;
                     selectedName = _data.newName;
+                    //console.log("Parent", _parent)
                     await doInit(_parent);
                   },
                   error: function (returnval) {
@@ -2217,7 +2220,7 @@ class FileSystemServices {
               $("#foldersTable").treetable("removeNode", prevRoot);
             } else {
             }
-            selectedFolder = configData.rootDir;
+            //selectedFolder = configData.rootDir;
             prevRoot = configData.rootDir;
             for (var i = 0; i < data.tree.length; ++i) {
               if (!data.tree[i].isFile) {
