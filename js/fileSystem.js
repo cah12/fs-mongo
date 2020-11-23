@@ -2003,7 +2003,7 @@ class FileSystemServices {
             } else {
               $("#dlg-password").val("");
               $("#dlg-repeat-password").val("");
-              $(window).trigger("registered");
+              $(window).trigger("registered", $("#dlg-username").val());
               $("#registerLoginModal").modal("toggle");
             }
           }
