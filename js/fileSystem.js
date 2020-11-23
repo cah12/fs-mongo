@@ -1074,10 +1074,7 @@ class FileSystemServices {
                 input[0].focus();
               },
               error: function (res) {
-                //console.log(101, res.responseJSON)
-                _data.newName = g_data.name;
-                //console.log(101, _data)
-               
+                _data.newName = g_data.name;                
                 $.ajax({
                   method: "POST",
                   headers: {
@@ -1977,9 +1974,8 @@ class FileSystemServices {
                 );
                 mongoFsLoginLogoutRegisterSeletor.contextMenu([]);
               }
-
               console.log(data.msg);
-              $(window).trigger("connected");
+              $(window).trigger("connected", $("#dlg-username").val());
               $("#registerLoginModal").modal("toggle");
             }
           }
