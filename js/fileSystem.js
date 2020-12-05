@@ -805,9 +805,12 @@ ext:
 sep: 
 */
 class FileSystemServices {
-  constructor(options) {
+  constructor(_options) {
+
     let self = this;
-    options = options || {};
+    let inMemoryToken = null;
+    let accessTokenExpiry = -1; //initialize with invalid time (secs)
+    let options = _options || {};
     //this.options = options;
     const fsServerUrl = options.fsServerUrl || "http://localhost:3000";
     const getDataCb =
@@ -826,58 +829,59 @@ class FileSystemServices {
 
     let imageLoaderSrc = "https://cdn.jsdelivr.net/gh/cah12/fs-mongo/img/imageLoader.png";
     let imageFolderSrc = "https://cdn.jsdelivr.net/gh/cah12/fs-mongo/img/folder.png";
-    let imageFileSrc = "https://cdn.jsdelivr.net/gh/cah12/fs-mongo/img/file.png";//options.imageFileSrc || null;
+    let imageFileSrc = "https://cdn.jsdelivr.net/gh/cah12/fs-mongo/img/file.png";
 
-    if(options.imageLoaderSrc !== undefined){
-      if(options.imageLoaderSrc.length){
+    if (options.imageLoaderSrc !== undefined) {
+      if (options.imageLoaderSrc.length) {
         imageLoaderSrc = options.imageLoaderSrc;
-      }else{
+      } else {
         imageLoaderSrc = null;
       }
     }
-    
-    if(options.imageFolderSrc !== undefined){
+
+    if (options.imageFolderSrc !== undefined) {
       //console.log(444, options.imageFolderSrc)
-      if(options.imageFolderSrc.length){
+      if (options.imageFolderSrc.length) {
         imageFolderSrc = options.imageFolderSrc;
-      }else{
+      } else {
         imageFolderSrc = null;
       }
-    } 
+    }
 
-    if(options.imageFileSrc !== undefined){
-      if(options.imageFileSrc.length){
+    if (options.imageFileSrc !== undefined) {
+      if (options.imageFileSrc.length) {
         imageFileSrc = options.imageFileSrc;
-      }else{
+      } else {
         imageFileSrc = null;
       }
-    } 
+    }
 
-  /*  console.log(444, imageLoaderSrc)
-   console.log(445, imageFolderSrc)
-   console.log(446, imageFileSrc) */
+    options.fsServerUrl = options.fsServerUrl || "";
+    options.sameDomain = options.sameDomain === undefined ? true : options.sameDomain;
+
+    options.persistSession = options.persistSession === undefined ? true : options.persistSession;
+
+    /*  console.log(444, options.fsServerUrl)
+     console.log(445, imageFolderSrc)
+     console.log(446, imageFileSrc) */
 
 
-    this.storeAccessToken =
-      options.storeAccessToken ||
-      function storeAccessToken(token) {
-        localStorage.setItem("AccessToken", token);
-      };
 
-    this.getAccessToken =
-      options.getAccessToken ||
-      function getAccessToken() {
-        return localStorage.getItem("AccessToken");
-      };
 
-    this.clearAccessToken =
-      options.clearAccessToken ||
-      function clearAccessToken() {
-        localStorage.removeItem("AccessToken");
-      };
+    this.storeRefreshToken = function (token) {
+      localStorage.setItem("RefreshToken", token);
+    };
+
+    this.getRefreshToken = function () {
+      return localStorage.getItem("RefreshToken");
+    }
+
+    this.clearRefreshToken = function () {
+      localStorage.removeItem("RefreshToken");
+    }
 
     var loginDlg = $(
-      '<div id="registerLoginModal" class="modal fade" role="dialog"> <div class="modal-dialog"> <!-- Modal content--> <div class="modal-content"> <div class="modal-header"> <button type="button" class="close" data-dismiss="modal">&times;</button> <h4 style="color:rgb(51, 122, 183);" id="dlg-title" class="modal-title">Sign Up</h4> </div> <div class="modal-body"> <div class="bottom-border"><span class="glyphicon glyphicon-user"></span><input id="dlg-username" class="no-outline" type="text" style="width: 97%; border-style: none;" placeholder="Enter Username"></div> <br> <div id="dlg-email-row"> <div class="bottom-border"><span class="glyphicon glyphicon-envelope"></span><input id="dlg-email" class="no-outline" type="text" style="width: 97%; border-style: none;" placeholder="Enter Email Address"></div> <br> </div> <div class="bottom-border"><span class="glyphicon glyphicon-lock"></span><input id="dlg-password" class="no-outline" type="password" style="width: 97%; border-style: none;" placeholder="Enter Password"></div> <br> <div id="dlg-repeat-row"> <div class="bottom-border"><span class="glyphicon glyphicon-lock"></span><input id="dlg-repeat-password" class="no-outline" type="password" style="width: 97%; border-style: none;" placeholder="Repeat Password"></div> </div> </div> <div class="modal-footer"> <div><input type="button" id="dlg-cancel-button" class="btn btn-primary" value="Cancel" /> <input type="button" id="dlg-ok-button" class="btn btn-primary" value="Sig Up" /></div> </div> </div> </div> </div>'
+      '<div id="registerLoginModal" class="modal fade" role="dialog"> <div class="modal-dialog"> <!-- Modal content--> <div class="modal-content"> <div class="modal-header"> <button type="button" class="close" data-dismiss="modal">&times;</button> <h4 style="color:rgb(51, 122, 183);" id="dlg-title" class="modal-title">Sign Up</h4> </div> <div class="modal-body"> <form id="registerLoginForm"> <div class="bottom-border"><span class="glyphicon glyphicon-user"></span><input id="dlg-username" name="username" class="no-outline" type="text" style="width: 97%; border-style: none;" placeholder="Enter Username"></div> <br> <div id="dlg-email-row"> <div class="bottom-border"><span class="glyphicon glyphicon-envelope"></span><input id="dlg-email" name="email" class="no-outline" type="email" style="width: 97%; border-style: none;" placeholder="Enter Email Address"></div> <br> </div> <div class="bottom-border"><span class="glyphicon glyphicon-lock"></span><input id="dlg-password"  name="password" class="no-outline" type="password" style="width: 97%; border-style: none;" placeholder="Enter Password"></div> <br> <div id="dlg-repeat-row"> <div class="bottom-border"><span class="glyphicon glyphicon-lock"></span><input id="dlg-repeat-password"  name="repeat_password" class="no-outline" type="password" style="width: 97%; border-style: none;" placeholder="Repeat Password"></div> </div> </form> </div> <div class="modal-footer"> <div><input type="button" id="dlg-cancel-button" class="btn btn-primary" value="Cancel" /> <input type="button" id="dlg-ok-button" class="btn btn-primary" value="Sig Up" /></div> </div> </div> </div> </div>'
     );
     $("body").append(loginDlg);
 
@@ -897,7 +901,7 @@ class FileSystemServices {
           '<img id="imageLoader" class="loader" style= "position: absolute;" src=' + imageLoaderSrc + '>'
         )
       );
-    
+
     var configData = null;
 
 
@@ -932,6 +936,8 @@ class FileSystemServices {
       $("#imageLoader").hide();
     }
 
+    
+
     const m_fsServerUrl = fsServerUrl;
     var name = "root";
     var parentName = "";
@@ -954,12 +960,49 @@ class FileSystemServices {
       return this.slice(0, idx) + str + this.slice(idx + Math.abs(rem));
     };
 
+    let timer = null;
+    function stopCountDown() {
+      clearTimeout(timer);
+    }
+
+    function refresh(cb) {
+      $.ajax({
+        method: "POST",
+        url: m_fsServerUrl + "/refresh_token",
+        data: options.sameDomain == true ? null : JSON.stringify({ refresh_token: self.getRefreshToken() }),
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+
+        success: function (data) {
+          inMemoryToken = data.accessToken;
+          if (!options.sameDomain) {
+            self.storeRefreshToken(data.refreshToken);
+          }
+          clearTimeout(timer);
+          countDown();
+          cb && cb(false, data)
+        },
+        error: function (data) {
+          self.clearRefreshToken();//remove any invalid token
+          cb && cb(true, data); //error         
+        },
+      });
+    }
+    //Set options.sameDomain to false to use getRefreshToken() even in same domain
+    function countDown() {
+      clearTimeout(timer)
+      timer = setTimeout(() => {
+        refresh();
+      }, (accessTokenExpiry - 0.5) * 1000)
+    }
+
+
     function findNode(_data) {
       return new Promise((resolve, reject) => {
         $.ajax({
           method: "POST",
           headers: {
-            Authorization: "Bearer " + self.getAccessToken(),
+            Authorization: "Bearer " + inMemoryToken,
           },
           url: m_fsServerUrl + "/node",
           data: JSON.stringify(_data),
@@ -1051,7 +1094,7 @@ class FileSystemServices {
             $.ajax({
               method: "POST",
               headers: {
-                Authorization: "Bearer " + self.getAccessToken(),
+                Authorization: "Bearer " + inMemoryToken,
               },
               url: m_fsServerUrl + "/access",
               data: JSON.stringify(g_data),
@@ -1074,11 +1117,11 @@ class FileSystemServices {
                 input[0].focus();
               },
               error: function (res) {
-                _data.newName = g_data.name;                
+                _data.newName = g_data.name;
                 $.ajax({
                   method: "POST",
                   headers: {
-                    Authorization: "Bearer " + self.getAccessToken(),
+                    Authorization: "Bearer " + inMemoryToken,
                   },
                   url: m_fsServerUrl + "/rename",
                   data: JSON.stringify(_data),
@@ -1134,7 +1177,7 @@ class FileSystemServices {
         method: "DELETE",
         url: m_fsServerUrl + "/" + endPoint,
         headers: {
-          Authorization: "Bearer " + self.getAccessToken(),
+          Authorization: "Bearer " + inMemoryToken,
         },
         data: JSON.stringify(_data),
         contentType: "application/json; charset=utf-8",
@@ -1216,7 +1259,7 @@ class FileSystemServices {
               method: "POST",
               url: m_fsServerUrl + "/access",
               headers: {
-                Authorization: "Bearer " + self.getAccessToken(),
+                Authorization: "Bearer " + inMemoryToken,
               },
               data: JSON.stringify(m_data),
               contentType: "application/json; charset=utf-8",
@@ -1245,7 +1288,7 @@ class FileSystemServices {
             method: "POST",
             url: m_fsServerUrl + "/createFile",
             headers: {
-              Authorization: "Bearer " + self.getAccessToken(),
+              Authorization: "Bearer " + inMemoryToken,
             },
             data: JSON.stringify(m_data),
             contentType: "application/json; charset=utf-8",
@@ -1291,7 +1334,6 @@ class FileSystemServices {
         parentId: _parent,
         parentPath: _parent,
       };
-
       addingFolder = true;
       var node = null;
       if (currentSelectedRowSelector) {
@@ -1300,7 +1342,6 @@ class FileSystemServices {
           currentSelectedRowSelector.attr("id")
         );
       }
-
       var input = $('<input type="text"/>');
       var inputRow = makeRow(_data);
       $("#filesTable").treetable("loadBranch", node, inputRow);
@@ -1327,7 +1368,7 @@ class FileSystemServices {
             method: "POST",
             url: m_fsServerUrl + "/createFolder",
             headers: {
-              Authorization: "Bearer " + self.getAccessToken(),
+              Authorization: "Bearer " + inMemoryToken,
             },
             data: JSON.stringify(m_data),
             contentType: "application/json; charset=utf-8",
@@ -1404,9 +1445,6 @@ class FileSystemServices {
           addFile();
         },
       };
-
-      //console.log(menuItem);
-
       menuNotSelectedSubmenu.push(menuItem);
     });
 
@@ -1418,9 +1456,6 @@ class FileSystemServices {
           openFileWith(item.options);
         },
       };
-
-      //console.log(menuItem);openFileWithMenu
-
       openFileWithSubmenu.push(menuItem);
     });
 
@@ -1768,7 +1803,7 @@ class FileSystemServices {
           method: "POST",
           url: m_fsServerUrl + "/rename",
           headers: {
-            Authorization: "Bearer " + self.getAccessToken(),
+            Authorization: "Bearer " + inMemoryToken,
           },
           data: JSON.stringify({ name: originalPath, newName: newName }),
           contentType: "application/json; charset=utf-8",
@@ -1836,12 +1871,12 @@ class FileSystemServices {
       $($("#filesTable").children()[0]).append(makeRow(rootData));
     }
 
-    var options = {
+    var optns = {
       expandable: true,
       clickableNodeNames: true,
     };
 
-    $("#filesTable").treetable(options /* , true */);
+    $("#filesTable").treetable(optns /* , true */);
 
     var initialized = false;
 
@@ -1852,7 +1887,7 @@ class FileSystemServices {
         method: "POST",
         url: m_fsServerUrl + "/readStream",
         headers: {
-          Authorization: "Bearer " + self.getAccessToken(),
+          Authorization: "Bearer " + inMemoryToken,
         },
         data: JSON.stringify(_data),
         contentType: "application/json; charset=utf-8",
@@ -1928,19 +1963,22 @@ class FileSystemServices {
       });
     });
 
-    this.loginDlg = function () {
+    function doLogin() {
       $("#dlg-repeat-row").hide();
       $("#dlg-email-row").hide();
       $("#dlg-title").html("Sign In");
       $("#dlg-ok-button").val("Sign In");
+      $("#dlg-password").val("");
       $("#registerLoginModal").modal();
     };
 
-    this.registerDlg = function () {
+    function doRegister() {
       $("#dlg-repeat-row").show();
       $("#dlg-email-row").show();
       $("#dlg-title").html("Sign Up");
       $("#dlg-ok-button").val("Sign Up");
+      $("#dlg-password").val("");
+      $("#dlg-repeat-password").val("");
       $("#registerLoginModal").modal();
     };
 
@@ -1949,18 +1987,26 @@ class FileSystemServices {
       return re.test(email);
     }
 
+    $(window).on("connected", () => {
+      showExplorerButton();
+      showSaveAsButton();
+    })
+
+    $(window).on("disconnected", () => {
+      hideExplorerButton();
+      hideSaveAsButton();
+    })
+
     $("#dlg-ok-button").on("click", () => {
       if ($("#dlg-title").html() == "Sign In") {
         self.connectFs(
-          $("#dlg-username").val(),
-          $("#dlg-password").val(),
+          $("#registerLoginForm").serializeJSON(),
           (data) => {
             //console.log(1235, data.error)
             if (data.error) {
               alert(data.msg);
             } else {
               $("#dlg-password").val("");
-
               if (mongoFsLoginLogoutRegisterSeletor) {
                 let innerHtml = mongoFsLoginLogoutRegisterSeletor.html();
                 innerHtml = innerHtml.replace(
@@ -1974,8 +2020,11 @@ class FileSystemServices {
                 );
                 mongoFsLoginLogoutRegisterSeletor.contextMenu([]);
               }
+
+              /* showExplorerButton();
+              showSaveAsButton(); */
+
               console.log(data.msg);
-              $(window).trigger("connected", $("#dlg-username").val());
               $("#registerLoginModal").modal("toggle");
             }
           }
@@ -1989,10 +2038,9 @@ class FileSystemServices {
           alert("Password different from repeat-password");
           return;
         }
+        
         self.registerFs(
-          $("#dlg-username").val(),
-          $("#dlg-password").val(),
-          $("#dlg-email").val(),
+          $("#registerLoginForm").serializeJSON(),
           (data) => {
             if (!data.success) {
               alert(data.msg);
@@ -2041,14 +2089,6 @@ class FileSystemServices {
     }
     //console.log(111, mongoFsLoginLogoutRegisterSeletor)
     if (mongoFsLoginLogoutRegisterSeletor) {
-      if ($(".mongo-fs-login-logout-register")[0].tagName !== "A") {
-        mongoFsLoginLogoutRegisterSeletor = $("<a/>");
-        $(".mongo-fs-login-logout-register").html("");
-        $(".mongo-fs-login-logout-register").append(
-          mongoFsLoginLogoutRegisterSeletor
-        );
-      }
-
       const glyphiconUser = $('<span class="glyphicon glyphicon-user"></span>');
       mongoFsLoginLogoutRegisterSeletor.html("Mongo File System(MFS) ");
       mongoFsLoginLogoutRegisterSeletor.append(glyphiconUser);
@@ -2057,21 +2097,31 @@ class FileSystemServices {
         "Register for or Login to Mongo File System"
       );
 
+      self.login = function () {
+        doLogin();
+      }
+
+      self.register = function () {
+        doRegister();
+      }
+
       let mongoFsLoginLogoutRegisterMenu = [
         {
           name: "Register",
           title: "Register for Mongo File System",
-          fun: self.registerDlg,
+          fun: self.register,
         },
         {
           name: "Login",
           title: "Login to Mongo File System",
-          fun: self.loginDlg,
+          //fun: self.loginDlg,
+          fun: self.login
         },
       ];
       mongoFsLoginLogoutRegisterSeletor.contextMenu(
         mongoFsLoginLogoutRegisterMenu
       );
+
       mongoFsLoginLogoutRegisterSeletor.click(() => {
         if (mongoFsLoginLogoutRegisterSeletor) {
           if (
@@ -2081,21 +2131,28 @@ class FileSystemServices {
           ) {
             self.disconnectFs((data) => {
               if (data.error) return console.log(data.msg);
-              let innerHtml = mongoFsLoginLogoutRegisterSeletor.html();
-              innerHtml = innerHtml.replace(
-                "Logout from MFS ",
-                "Mongo File System(MFS) "
-              );
-              mongoFsLoginLogoutRegisterSeletor.html(innerHtml);
-              mongoFsLoginLogoutRegisterSeletor.attr(
-                "title",
-                "Register for or Login to Mongo File System"
-              );
-              mongoFsLoginLogoutRegisterSeletor.contextMenu(
-                mongoFsLoginLogoutRegisterMenu
-              );
+              if (mongoFsLoginLogoutRegisterSeletor) {
+                let innerHtml = mongoFsLoginLogoutRegisterSeletor.html();
+                innerHtml = innerHtml.replace(
+                  "Logout from MFS ",
+                  "Mongo File System(MFS) "
+                );
+                mongoFsLoginLogoutRegisterSeletor.html(innerHtml);
+                mongoFsLoginLogoutRegisterSeletor.attr(
+                  "title",
+                  "Register for or Login to Mongo File System"
+                );
+                mongoFsLoginLogoutRegisterSeletor.contextMenu(
+                  mongoFsLoginLogoutRegisterMenu
+                );
+              }
               console.log(data.msg);
-              $(window).trigger("disconnected");
+
+              /* hideExplorerButton();
+              hideSaveAsButton(); */
+
+              //breakdown();
+
             });
           }
         }
@@ -2106,38 +2163,46 @@ class FileSystemServices {
     if (!mongoFsExplorerSeletor[0]) mongoFsExplorerSeletor = null;
     if (mongoFsExplorerSeletor) {
       let innerHtml = $(".mongo-fs-explorer").html().length ? $(".mongo-fs-explorer").html() : "File Explorer";
-      if ($(".mongo-fs-explorer")[0].tagName !== "A") {
-        mongoFsExplorerSeletor = $("<a/>");
-        $(".mongo-fs-explorer").html("");
-        $(".mongo-fs-explorer").append(
-          mongoFsExplorerSeletor
-        );
-      }
       mongoFsExplorerSeletor.html(innerHtml);
       mongoFsExplorerSeletor.click(() => {
         self.explorerDlg();
       });
     }
 
+    function showExplorerButton() {
+      $(".mongo-fs-explorer").show();
+    }
+
+    function hideExplorerButton() {
+      if (!$(".mongo-fs-explorer").hasClass("hiding-enable")) return;
+      $(".mongo-fs-explorer").hide();
+    }
+    hideExplorerButton()
+    //showExplorerButton()
+
     let mongoFsSaveAsSeletor = $(".mongo-fs-save-as");
     if (!mongoFsSaveAsSeletor[0]) mongoFsSaveAsSeletor = null;
     if (mongoFsSaveAsSeletor) {
       let innerHtml = $(".mongo-fs-save-as").html().length ? $(".mongo-fs-save-as").html() : "Save";
-      if ($(".mongo-fs-save-as")[0].tagName !== "A") {
-        mongoFsSaveAsSeletor = $("<a/>");
-        $(".mongo-fs-save-as").html("");
-        $(".mongo-fs-save-as").append(
-          mongoFsSaveAsSeletor
-        );
-      }
       mongoFsSaveAsSeletor.html(innerHtml);
       mongoFsSaveAsSeletor.click(() => {
         self.saveDlg();
       });
     }
 
+    function showSaveAsButton() {
+      $(".mongo-fs-save-as").show();
+    }
+
+    function hideSaveAsButton() {
+      if (!$(".mongo-fs-save-as").hasClass("hiding-enable")) return;
+      $(".mongo-fs-save-as").hide();
+    }
+    hideSaveAsButton()
+    //showSaveAsButton()
+
     this.saveDlg = function () {
-      if (!self.getAccessToken()) return alert("Not connected...");
+      if (!inMemoryToken) return alert("Not connected...");
       $("#dlgTitle").html("Save As");
       $("#inputFields").show();
       $("#explorerSaveAsModal").modal();
@@ -2145,7 +2210,7 @@ class FileSystemServices {
     };
 
     this.explorerDlg = function () {
-      if (!self.getAccessToken()) return alert("Not connected...");
+      if (!inMemoryToken) return alert("Not connected...");
       $("#dlgTitle").html("File Explorer");
       $("#inputFields").hide();
       $("#explorerSaveAsModal").modal();
@@ -2166,7 +2231,7 @@ class FileSystemServices {
           method: "POST",
           url: m_fsServerUrl + "/createFile",
           headers: {
-            Authorization: "Bearer " + self.getAccessToken(),
+            Authorization: "Bearer " + inMemoryToken,
           },
           data: JSON.stringify(_data),
           contentType: "application/json; charset=utf-8",
@@ -2207,7 +2272,7 @@ class FileSystemServices {
         $.ajax({
           method: "GET",
           headers: {
-            Authorization: "Bearer " + self.getAccessToken(),
+            Authorization: "Bearer " + inMemoryToken,
           },
           url: m_fsServerUrl + "/tree",
           success: function (data) {
@@ -2255,19 +2320,20 @@ class FileSystemServices {
     };
 
     //email is optional
-    this.registerFs = function (name, pass, email, cb) {
-      let data = { username: name, password: pass, email };
-      if (typeof email !== "string") {
+    //this.registerFs = function (name, pass, email, cb) {
+    this.registerFs = function (registerData, cb) {
+      //let data = { username: name, password: pass, email };
+      /* if (typeof email !== "string") {
         data.email = "";
         cb = email;
-      }
+      } */
       $.ajax({
         method: "POST",
         url: m_fsServerUrl + "/registerFs",
         headers: {
-          Authorization: "Bearer " + self.getAccessToken(),
+          Authorization: "Bearer " + inMemoryToken,
         },
-        data: JSON.stringify(data),
+        data: JSON.stringify(registerData),
         contentType: "application/json; charset=utf-8",
         dataType: "json",
         success: function (data) {
@@ -2284,7 +2350,7 @@ class FileSystemServices {
         method: "GET",
         url: m_fsServerUrl + "/config",
         headers: {
-          Authorization: "Bearer " + self.getAccessToken(),
+          Authorization: "Bearer " + inMemoryToken,
         },
         contentType: "application/json; charset=utf-8",
         dataType: "json",
@@ -2302,7 +2368,7 @@ class FileSystemServices {
         method: "POST",
         url: m_fsServerUrl + "/config",
         headers: {
-          Authorization: "Bearer " + self.getAccessToken(),
+          Authorization: "Bearer " + inMemoryToken,
         },
         data: JSON.stringify(data),
         contentType: "application/json; charset=utf-8",
@@ -2316,23 +2382,26 @@ class FileSystemServices {
       });
     };
 
-    this.connectFs = function (username, password, cb) {
-      //Break any existing connection.
-      if (self.getAccessToken()) {
-        self.disconnectFs()
-      }
-      let connectOptions = { username, password };
+
+
+    //this.connectFs = function (username, password, cb) {
+    this.connectFs = function (connectData, cb) {
       $.ajax({
         method: "POST",
         url: m_fsServerUrl + "/connect",
-        data: JSON.stringify(connectOptions),
+        data: JSON.stringify(connectData),
         contentType: "application/json; charset=utf-8",
         dataType: "json",
         success: function (data) {
-          self.storeAccessToken(data.accessToken);
+          inMemoryToken = data.accessToken;
+          self.storeRefreshToken(data.refreshToken);
+          clearTimeout(timer);//ensure any earlier timeout is cleared
+          countDown(); //monitor expiration
           configData = data.configData;
           name = configData.rootDir;
+
           cb && cb({ error: false, msg: "Connected" });
+          $(window).trigger("connected", connectData.username);
         },
         error: function (data) {
           cb && cb(data.responseJSON);
@@ -2345,27 +2414,132 @@ class FileSystemServices {
         method: "POST",
         url: m_fsServerUrl + "/disconnect",
         headers: {
-          Authorization: "Bearer " + self.getAccessToken(),
+          Authorization: "Bearer " + inMemoryToken,
         },
         contentType: "application/json; charset=utf-8",
+        data: JSON.stringify({ refreshToken: self.getRefreshToken() }),
         dataType: "json",
         success: function (data) {
+          inMemoryToken = null;
+          self.clearRefreshToken();
+          stopCountDown();
+          // to support logging out from all windows
+          localStorage.setItem('logout', Date.now())
           cb && cb({ error: false, msg: "Disconnected" });
+          $(window).trigger("disconnected");
         },
         error: function (data) {
           cb && cb({ error: true, msg: data.responseJSON });
         },
       });
-      self.clearAccessToken();
     };
 
-    //Break any existing connection.
-    if (self.getAccessToken()) {
-      self.disconnectFs();
+    this.isConnected = async function () {
+      return inMemoryToken !== null;
     }
 
-    window.addEventListener("beforeunload", function (e) {
-      self.disconnectFs();
-    });
+    window.addEventListener('storage', (event) => {
+      console.log("event.key", event.key)
+      if (event.key === 'logout') {
+        console.log('logged out from storage!');
+        //location.reload()
+      }
+    })
+
+    function breakdown() {
+      $.ajax({
+        method: "DELETE",
+        url: m_fsServerUrl + "/breakdown",
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        success: function (data) {
+          //console.log(data.msg)
+        },
+        error: function (data) {
+          console.log(data);
+        },
+      });
+    }
+
+    /* window.addEventListener("beforeunload", function (e) {
+      //self.disconnectFs();
+      breakdown();
+    }); */
+
+    setup();
+
+    //(function () {
+    // setup();
+    stopCountDown()
+    if (options.persistSession) {
+      refresh(async (err, data) => {
+        if (err) {
+          console.log(data)
+        } else {
+          $.ajax({
+            method: "POST",
+            url: m_fsServerUrl + "/re-connect",
+            headers: {
+              Authorization: "Bearer " + inMemoryToken,
+            },
+            //data: JSON.stringify({ sameDomain: options.sameDomain, accessTokenExpiry: options.accessTokenExpiry }),
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: function (data) {
+              //console.log(458);
+              if (mongoFsLoginLogoutRegisterSeletor) {
+                let innerHtml = mongoFsLoginLogoutRegisterSeletor.html();
+                innerHtml = innerHtml.replace(
+                  "Mongo File System(MFS) ",
+                  "Logout from MFS "
+                );
+                mongoFsLoginLogoutRegisterSeletor.html(innerHtml);
+                mongoFsLoginLogoutRegisterSeletor.attr(
+                  "title",
+                  "Logout from Mongo File System"
+                );
+                mongoFsLoginLogoutRegisterSeletor.contextMenu([]);
+              }
+
+              configData = data.configData;
+              name = configData.rootDir;
+              /* showExplorerButton();
+              showSaveAsButton(); */
+              $(window).trigger("connected", data.username);
+
+            },
+            error: function (data) {
+              //console.log(459);
+              console.log(data);
+            },
+          });
+        }
+      });
+    } else {
+      breakdown();
+      self.clearRefreshToken();
+    }
+
+
+
+    function setup() {
+      $.ajax({
+        method: "POST",
+        url: m_fsServerUrl + "/setup",
+        data: JSON.stringify({ sameDomain: options.sameDomain, accessTokenExpiry: options.accessTokenExpiry }),
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        success: function (data) {
+          accessTokenExpiry = data.accessTokenExpiry;
+          //console.log("accessTokenExpiry",  accessTokenExpiry)
+        },
+        error: function (data) {
+          console.log(data);
+        },
+      });
+    }
+
+
+
   }
 }
