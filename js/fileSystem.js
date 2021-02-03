@@ -791,6 +791,9 @@
     }
   };
 })(jQuery, window, document);
+
+
+/* ********************************************************************************************************************** */
 /* ******************************contextmenu end************************************************************************** */
 
 
@@ -807,23 +810,20 @@ sep:
 class FileSystemServices {
   constructor(_options) {
 
-    let self = this;
+    const self = this;
     let inMemoryToken = null;
-    let accessTokenExpiry = -1; //initialize with invalid time (secs)
     let options = _options || {};
-    //this.options = options;
+    options.accessTokenExpiry = options.accessTokenExpiry || 10; //initialize with 10 secs if undefined
     const fsServerUrl = options.fsServerUrl || "http://localhost:3000";
-    const getDataCb =
-      options.getDataCb ||
-      function () {
-        console.error("No getDataCb provided.");
-      };
-    const openCb =
-      options.openCb ||
-      function (data) {
-        console.warn("No openCb provided.");
-        console.log(data);
-      };
+
+    let currentFilename = null;
+
+    this.currentFilename = function (filename) {
+      if (filename !== undefined)
+        currentFilename = filename;
+      return currentFilename;
+    }
+
     const listOfFileTypes = options.listOfFileTypes || [];
     const listOfOpenWithTypes = options.listOfOpenWithTypes || [];
 
@@ -865,19 +865,120 @@ class FileSystemServices {
      console.log(445, imageFolderSrc)
      console.log(446, imageFileSrc) */
 
+    let editors = [];//holds objects {name: "Text Editor", editor: nodepad-obj}
 
-
-
-    this.storeRefreshToken = function (token) {
-      localStorage.setItem("RefreshToken", token);
-    };
-
-    this.getRefreshToken = function () {
-      return localStorage.getItem("RefreshToken");
+    this.registerEditor = function (editor) {
+      editors.push(editor);
     }
 
-    this.clearRefreshToken = function () {
-      localStorage.removeItem("RefreshToken");
+    function getEditorByName(editorName) {
+      const element = editors.find(element => element.name === editorName);
+      if (element !== undefined) {
+        return element.editor;
+      }
+      return null;
+    }
+
+    function getEditorByExt(ext) {
+      for (let i = 0; i < editors.length; ++i) {
+        const editor = editors[i].editor;
+        const exts = editor.getExtensions();
+        for (let n = 0; n < exts.length; ++n) {
+          if (exts[n] == ext) {
+            return editor;
+          }
+        }
+      }
+      return null;
+    }
+
+    let mongoFsLoginLogoutRegisterMenu = [
+      {
+        name: "Register",
+        title: "Register for Mongo File System",
+        fun: doRegister,
+      },
+      {
+        name: "Login",
+        title: "Login to Mongo File System",
+        fun: doLogin
+      },
+    ];
+
+    this.doExplorerDlg = async function () {
+      if (!inMemoryToken) return alert("Not connected...");
+      $("#dlgTitle").html("File Explorer");
+      $("#inputFields").hide();
+      $("#explorerSaveAsModal").modal();
+      $("#saveAsType").val(".all");
+      await init();
+    };
+
+    this.doSaveDlg = async function () {
+      if (!inMemoryToken) return alert("Not connected...");
+      $("#dlgTitle").html("Save As");
+      $("#inputFields").show();
+      $("#explorerSaveAsModal").modal();
+      await init();
+    };
+
+    function doLogout() {
+      self.disconnectFs((data) => {
+        if (data.error) return console.log(data.msg);
+        mongoFsLoginLogoutRegisterSeletor.contextMenu(
+          mongoFsLoginLogoutRegisterMenu
+        );
+        console.log(data.msg);
+      });
+    }
+
+    function doNotepadDlg() {
+      if (self.notepad)
+        self.notepad.openEditor();
+    }
+
+
+    let mongoFsLoginLogoutRegisterMenu2 = [
+      {
+        name: "Logout",
+        title: "Logout for Mongo File System",
+        fun: doLogout,
+      },
+      {
+        name: "Explorer",
+        title: "Launch the Mongo File System explorer.",
+        fun: self.doExplorerDlg
+      }
+    ];
+
+    this.addMongoFsMenuItems = function (menuItems) {
+      for(let i=0; i<menuItems.length;++i){
+        mongoFsLoginLogoutRegisterMenu2.push(menuItems[i]);
+      }      
+    }
+
+    this.addNotepadMenuItem = function () {
+      mongoFsLoginLogoutRegisterMenu2.push({
+        name: "Notepad",
+        title: "Launch the Mongo File System notepad.",
+        fun: doNotepadDlg
+      })
+    }
+
+    this.addSaveMenuItem = function (editor) {
+      mongoFsLoginLogoutRegisterMenu2.push({
+        name: "Save",
+        title: "Saves current document to Mongo File System.",
+        fun: editor.save
+      })
+    }
+
+    this.addSaveAsMenuItem = function (editor) {
+      mongoFsLoginLogoutRegisterMenu2.push({
+        name: "Save As",
+        title: "Saves current document to Mongo File System.",
+        fun: editor.saveAs
+      })
     }
 
     var loginDlg = $(
@@ -886,12 +987,12 @@ class FileSystemServices {
     $("body").append(loginDlg);
 
     var saveDlg = $(
-      '<div id="explorerSaveAsModal" class="modal fade" role="dialog" data-backdrop="static" data-keyboard="false"> <div class="modal-dialog"> <!-- Modal content--> <div id="dlg-saveDlg" class="modal-content"> <div class="modal-header"><button type="button" class="close" data-dismiss="modal">&times;</button> <h4 id="dlgTitle" class="modal-title">Save As</h4> </div> <div class="modal-body"><br> <div class="container"></div> <div class="row"> <div class="col-sm-1"></div> <div class="col-sm-10"> <div class="row"> <div class="col-sm-2"> <label for="parent">Folder</label> </div> <div class="col-sm-7"> <input type="text" class="form-control inputClass" id="parent" name="parent" readonly> </div> <div class="col-sm-3"> <input type="button" class="form-control inputClass" id="configButton" value="Config"> </div> </div> <br> <div class="row"> <div class="col-sm-5"> <div style="overflow: scroll; height: 200px; border: solid; border-width: 1px;"> <table style="border-width: 0px; white-space: nowrap;" id="foldersTable"> <tbody></tbody> </table> </div> </div> <div id="menuElement" style="position: relative;" class="col-sm-7"> <div style="overflow: scroll; height: 200px; border: solid; border-width: 1px;"> <table style="border-width: 0px; white-space: nowrap;" id="filesTable"> <tbody></tbody> </table> </div> </div> </div><br> <div id="inputFields"> <div class="row"> <div class="col-sm-3"> <label for="name">File name</label> </div> <div class="col-sm-9"> <input type="text" class="form-control inputClass" id="name" name="name"> </div> </div> <br> <div class="row"> <div class="col-sm-3"> <label for="parent">Save as type</label> </div> <div class="col-sm-9"> <select class="form-control inputClass" id="saveAsType"></select> </div> </div> <br> <button id="dlgSaveButton" style="width: 100%" class="btn btn-primary">Save</button> </div> </div> <div class="col-sm-1"></div> </div> </div> </div> </div> </div>'
+      '<div id="explorerSaveAsModal" class="modal fade" role="dialog" data-backdrop="static" data-keyboard="false"> <div class="modal-dialog"> <!-- Modal content--> <div id="dlg-saveDlg" class="modal-content"> <div class="modal-header"><button id="saveDlgClose" type="button" class="close">&times;</button> <h4 id="dlgTitle" class="modal-title">Save As</h4> </div> <div class="modal-body"><br> <div class="container"></div> <div class="row"> <div class="col-sm-1"></div> <div class="col-sm-10"> <div class="row"> <div class="col-sm-2"> <label for="parent">Folder</label> </div> <div class="col-sm-7"> <input type="text" class="form-control inputClass" id="parent1" readonly> </div> <div class="col-sm-3"> <input type="button" class="form-control inputClass" id="configButton" value="Config"> </div> </div> <br> <div class="row"> <div class="col-sm-5"> <div style="overflow: scroll; height: 200px; border: solid; border-width: 1px;"> <table style="border-width: 0px; white-space: nowrap;" id="foldersTable"> <tbody></tbody> </table> </div> </div> <div id="menuElement" style="position: relative;" class="col-sm-7"> <div style="overflow: scroll; height: 200px; border: solid; border-width: 1px;"> <table style="border-width: 0px; white-space: nowrap;" id="filesTable"> <tbody></tbody> </table> </div> </div> </div><br> <div id="inputFields"> <div class="row"> <div class="col-sm-3"> <label for="name">File name</label> </div> <div class="col-sm-9"> <input type="text" class="form-control inputClass" id="name" name="name"> </div> </div> <br> <div class="row"> <div class="col-sm-3"> <label for="saveAsType">Save as type</label> </div> <div class="col-sm-9"> <select class="form-control inputClass" id="saveAsType"></select> </div> </div> <br> <button id="dlgSaveButton" style="width: 100%" class="btn btn-primary">Save</button> </div> </div> <div class="col-sm-1"></div> </div> </div> </div> </div> </div>'
     );
     $("body").append(saveDlg);
 
     var configDlg = $(
-      '<div id="configModal" class="modal fade" role="dialog" data-backdrop="static" data-keyboard="false"> <div class="modal-dialog"> <!-- Modal content--> <div class="modal-content"> <div class="modal-header"><button type="button" class="close" data-dismiss="modal">&times;</button> <h4 id="dlg-title" style="text-align: center;" class="modal-title">Configuration</h4> </div> <div class="modal-body"><br> <div class="container"></div> <div class="row"> <div class="col-sm-1"></div> <div class="col-sm-10"> <div class="row"> <table class="config-table" style="width: 100%;"> <tr class="config-table"> <th class="config-table">Propery</th> <th class="config-table">Value</th> </tr> <tr class="config-table"> <td class="config-table">Root directory name</td> <td class="config-table"><input id="rootDir" type="text" style="width: 100%;" value="root:" /></td> </tr> <tr class="config-table"> <td class="config-table">Separator</td> <td class="config-table"><input id="sep" type="text" style="width: 100%;" value="" /></td> </tr> <tr class="config-table"> <td class="config-table">Dialog background color</td> <td class="config-table"><input id="dialog-background-color" type="color" value="#ffffff" /></td> </tr> <tr class="config-table"> <td class="config-table">Input background color</td> <td class="config-table"><input id="input-background-color" type="color" value="#ffffff" /></td> </tr> </table> </div> <br> <div class="row"> <div class="col-sm-4"><input type="button" id="config-cancel-button" class="btn btn-primary" value="Cancel" style="width: 100%" ; /></div> <div class="col-sm-4"><input type="button" id="config-restore-button" class="btn btn-primary" value="Restore Defaults" style="width: 100%" ; /></div> <div class="col-sm-4"><input type="button" id="config-ok-button" class="btn btn-primary" value="Ok" style="width: 100%" ; /></div> </div> </div> </div> </div> </div> </div> </div>'
+      '<div id="configModal" class="modal fade" role="dialog" data-backdrop="static" data-keyboard="false"> <div class="modal-dialog"> <!-- Modal content--> <div class="modal-content"> <div class="modal-header"><button type="button" class="close" data-dismiss="modal">&times;</button> <h4 id="dlg-title" style="text-align: center;" class="modal-title">Configuration</h4> </div> <div class="modal-body"><br> <div class="container"></div> <div class="row"> <div class="col-sm-1"></div> <div class="col-sm-10"> <div class="row"> <table class="config-table" style="width: 100%;"> <tr class="config-table"> <th class="config-table">Propery</th> <th class="config-table">Value</th> </tr> <tr class="config-table"> <td class="config-table">Root directory name</td> <td class="config-table"><input id="rootDir" type="text" style="width: 100%;" value="root:" /></td> </tr> <tr class="config-table"> <td class="config-table">Separator</td> <td class="config-table"><input id="sep" type="text" style="width: 100%;" value="" /></td> </tr> <tr class="config-table"> <td class="config-table">Dialog background color</td> <td class="config-table"><input id="dialog-background-color" type="color" value="#ffffff" /></td> </tr> <tr class="config-table"> <td class="config-table">Input background color</td> <td class="config-table"><input id="input-background-color" type="color" value="#ffffff" /></td> </tr> <tr class="config-table"> <td class="config-table">Store new files with GridFs</td> <td class="config-table"><input id="gridfs-storage" type="checkbox" checked /></td> </tr> </table> </div> <br> <div class="row"> <div class="col-sm-4"><input type="button" id="config-cancel-button" class="btn btn-primary" value="Cancel" style="width: 100%" ; /></div> <div class="col-sm-4"><input type="button" id="config-restore-button" class="btn btn-primary" value="Restore Defaults" style="width: 100%" ; /></div> <div class="col-sm-4"><input type="button" id="config-ok-button" class="btn btn-primary" value="Ok" style="width: 100%" ; /></div> </div> </div> </div> </div> </div> </div> </div>'
     );
     $("body").append(configDlg);
 
@@ -910,10 +1011,14 @@ class FileSystemServices {
       configData.inputBackgroundColor = "#ffffff";
       configData.rootDir = "root:";
       configData.sep = "\\";
+      configData.gridFsStorage = true;
       $("#rootDir").val(configData.rootDir);
       $("#sep").val(configData.sep);
       $("#dialog-background-color").val(configData.dialogBackgroundColor);
       $("#input-background-color").val(configData.inputBackgroundColor);
+      //console.log(123, $("#gridfs-storage").prop("checked"))
+      $("#gridfs-storage").prop("checked", configData.gridFsStorage);
+      //console.log(124, $("#gridfs-storage").prop("checked"))
     });
 
     var prevW = parseInt(saveDlg.css("width"));
@@ -934,9 +1039,10 @@ class FileSystemServices {
         }
       });
       $("#imageLoader").hide();
+      //$("#imageLoader").css("zIndex", 20);
     }
 
-    
+
 
     const m_fsServerUrl = fsServerUrl;
     var name = "root";
@@ -956,6 +1062,10 @@ class FileSystemServices {
       e.preventDefault();
     });
 
+    $("#saveDlgClose").click(function () {
+      saveDlg.modal("hide");
+    })
+
     String.prototype.spliceStr = function (idx, rem, str) {
       return this.slice(0, idx) + str + this.slice(idx + Math.abs(rem));
     };
@@ -966,10 +1076,13 @@ class FileSystemServices {
     }
 
     function refresh(cb) {
+      const refreshToken = self.getRefreshToken()
+      if (!options.sameDomain && !refreshToken) return;
+
       $.ajax({
         method: "POST",
         url: m_fsServerUrl + "/refresh_token",
-        data: options.sameDomain == true ? null : JSON.stringify({ refresh_token: self.getRefreshToken() }),
+        data: JSON.stringify({ refreshToken }),
         contentType: "application/json; charset=utf-8",
         dataType: "json",
 
@@ -993,30 +1106,7 @@ class FileSystemServices {
       clearTimeout(timer)
       timer = setTimeout(() => {
         refresh();
-      }, (accessTokenExpiry - 0.5) * 1000)
-    }
-
-
-    function findNode(_data) {
-      return new Promise((resolve, reject) => {
-        $.ajax({
-          method: "POST",
-          headers: {
-            Authorization: "Bearer " + inMemoryToken,
-          },
-          url: m_fsServerUrl + "/node",
-          data: JSON.stringify(_data),
-          contentType: "application/json; charset=utf-8",
-          dataType: "json",
-          success: function (data) {
-            resolve(data);
-          },
-          error: function (returnval) {
-            console.log("findNode fail");
-            reject(null);
-          },
-        });
-      });
+      }, (options.accessTokenExpiry - 0.5) * 1000)
     }
 
     //Renames a file or folder
@@ -1089,7 +1179,6 @@ class FileSystemServices {
             g_data.name += "." + currentSelectedRowSelector.attr("data-tt-ext");
           }
 
-          // console.log(487, g_data)
           try {
             $.ajax({
               method: "POST",
@@ -1118,6 +1207,7 @@ class FileSystemServices {
               },
               error: function (res) {
                 _data.newName = g_data.name;
+                //console.log(488, _data)
                 $.ajax({
                   method: "POST",
                   headers: {
@@ -1132,8 +1222,12 @@ class FileSystemServices {
                     editing = false;
                     changed = false;
                     selectedName = _data.newName;
-                    //console.log("Parent", _parent)
-                    await doInit(_parent);
+                    try {
+                      await doInit(_parent);
+                    } catch (err) {
+                      console.log("doInit failed 12")
+                      alert(`Initialisation failed. Please retry.`);
+                    }
                   },
                   error: function (returnval) {
                     input[0].focus();
@@ -1149,7 +1243,7 @@ class FileSystemServices {
       });
     }
 
-    function doRemove() {
+    function doDelete() {
       var message = "";
       if (currentSelectedRowSelector.attr("data-tt-file") == "file") {
         message = `Do you want to permanently remove the file "${currentSelectedRowSelector.attr(
@@ -1171,6 +1265,10 @@ class FileSystemServices {
       if (currentSelectedRowSelector.attr("data-tt-file") == "file") {
         endPoint = "removeFile";
         m_selectedName = m_selectedName.replace("f", "");
+        if (currentFilename === m_selectedName) {
+          alert(`The file "${currentFilename}" is opened. Close it before deleting it.`)
+          return;
+        }
       }
       var _data = { name: m_selectedName };
       $.ajax({
@@ -1184,23 +1282,25 @@ class FileSystemServices {
         dataType: "json",
         success: async function () {
           try {
-            //refresh
             await doInit(_parent);
             //Selected file/folder removed. Invalidate variable.
             selectedName = null;
           } catch {
-            console.log("doInit failed");
+            console.log("doInit failed 1");
+            alert(`Initialisation failed. Please retry.`);
           }
         },
         error: function (returnval) {
           console.log(returnval.responseJSON);
-          alert(returnval.responseJSON.msg);
+          alert(`Failed to delete "${m_selectedName}". Please retry.`);
+          currentSelectedRowSelector.toggleClass("selected")
         },
       });
     }
 
     function addFile() {
-      var _parent = $("#parent").val();
+      //console.log(225)
+      var _parent = $("#parent1").val();
       var _data = {
         id: "inputRowId",
         isFile: true,
@@ -1299,7 +1399,8 @@ class FileSystemServices {
                 await doInit(_parent);
                 editing = false;
               } catch {
-                console.log("doInit failed");
+                console.log("doInit failed 2");
+                alert(`Initialisation failed. Please retry.`);
               }
             },
             error: function (returnval) {
@@ -1326,7 +1427,7 @@ class FileSystemServices {
     var addingFolder = false;
 
     function addFolder(_data) {
-      var _parent = $("#parent").val();
+      var _parent = $("#parent1").val();
       var _data = {
         id: "inputRowId",
         isFile: false,
@@ -1375,10 +1476,15 @@ class FileSystemServices {
             dataType: "json",
             success: async function (data) {
               //refresh
-              await doInit(_parent);
+              try {
+                await doInit(_parent);
+              } catch {
+                console.log("doInit failed 3");
+                alert(`Initialisation failed. Please retry.`);
+              }
             },
             error: function (returnval) {
-              console.log(returnval.responseJSON);
+              //console.log(returnval.responseJSON);
               alert(returnval.responseJSON.msg);
               input[0].focus();
             },
@@ -1414,10 +1520,8 @@ class FileSystemServices {
         //img: 'images/scissors.png',
         title: "Creates a new text document.",
         fun: function () {
-          //console.log("Create a new file.");
           $("#name").val("New Text Document");
           $("#saveAsType").val(".txt");
-          //$("#saveAsType").trigger("change")
           updateFilesTable();
           if (
             currentSelectedRowSelector &&
@@ -1453,7 +1557,7 @@ class FileSystemServices {
         name: item.name,
         title: `Opens with ${item.name}.`,
         fun: function () {
-          openFileWith(item.options);
+          openFileWith({ editorName: item.name, options: item.options });
         },
       };
       openFileWithSubmenu.push(menuItem);
@@ -1473,6 +1577,133 @@ class FileSystemServices {
       name: "Open with...",
       title: "Opens the current selection",
       subMenu: openFileWithSubmenu,
+    };
+
+    let nodeToCopy = null;
+    let nodeCut = false;
+
+
+
+    function copyNode() {
+      nodeToCopy = selectedName
+      if (currentSelectedRowSelector.attr("data-tt-file") == "file") {
+        nodeToCopy = nodeToCopy.replace("f", "");
+      }
+    }
+
+    function cutNode() {
+      nodeToCopy = selectedName
+      if (currentSelectedRowSelector.attr("data-tt-file") == "file") {
+        nodeToCopy = nodeToCopy.replace("f", "");
+      }
+      nodeCut = true;
+    }
+
+    function pasteNode(cb) {
+      let dest = selectedName || $("#parent1").val();
+      const src = nodeToCopy;
+      if (`f${src}` === dest) {
+        dest = $("#rootDir").val();
+      }
+
+      const arr = nodeToCopy.split(configData.sep)
+      const name = dest + configData.sep + arr[arr.length - 1];
+      //console.log("name", name)
+      let m_data = { src, dest };
+      $.ajax({
+        method: "POST",
+        headers: {
+          Authorization: "Bearer " + inMemoryToken,
+        },
+        url: m_fsServerUrl + "/access",
+        data: JSON.stringify({ name }),
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        success: async function (res) {
+          if (confirm(`File with the name "${name}" already exist. Do you want to replace it?`)) {
+            $.ajax({
+              method: "POST",
+              url: m_fsServerUrl + "/copyFile",
+              headers: {
+                Authorization: "Bearer " + inMemoryToken,
+              },
+              data: JSON.stringify(m_data),
+              contentType: "application/json; charset=utf-8",
+              dataType: "json",
+              success: async function (cpyName) {
+                nodeToCopy = null;
+                cb && cb(src)
+              },
+              error: function (err) {
+                console.log(err.responseJSON);
+                cb && cb(null)
+              },
+            });
+          }
+        },
+        error: async function (res) {
+          $.ajax({
+            method: "POST",
+            url: m_fsServerUrl + "/copyFile",
+            headers: {
+              Authorization: "Bearer " + inMemoryToken,
+            },
+            data: JSON.stringify(m_data),
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: async function (cpyName) {
+              nodeToCopy = null;
+              cb && cb(src);
+            },
+            error: function (err) {
+              console.log(err.responseJSON);
+              cb && cb(null)
+            },
+          });
+        }
+      });
+
+    }
+
+    var pasteMenu = {
+      //disable: true,
+      name: "Paste",
+      title: "Paste the current selection",
+      fun: function () {
+        pasteNode(async (cpy) => {
+          if (nodeCut) {
+            $.ajax({
+              method: "DELETE",
+              url: m_fsServerUrl + "/removeFile",
+              headers: {
+                Authorization: "Bearer " + inMemoryToken,
+              },
+              data: JSON.stringify({ name: cpy }),
+              contentType: "application/json; charset=utf-8",
+              dataType: "json",
+              success: async function () {
+                try {
+                  await doInit($("#parent1").val());
+                  nodeCut = false;
+                } catch {
+                  console.log("doInit failed 5");
+                  alert(`Initialisation failed. Please retry.`);
+                }
+              },
+              error: function (returnval) {
+                console.log(returnval.responseJSON);
+                alert(returnval.responseJSON);
+              },
+            });
+          } else {
+            try {
+              await doInit($("#parent1").val());
+            } catch {
+              console.log("doInit failed 6");
+            }
+          }
+        });
+      },
     };
 
     var menuSelected = [
@@ -1497,16 +1728,32 @@ class FileSystemServices {
         },
       },
       {
-        //pos: 4,
-        name: "Remove",
-        //img: 'images/scissors.png',
-        title: "Removes current selection.",
+        //pos: 0,
+        name: "Cut",
+        // img: 'images/brush.png',
+        title: "Cuts the current selection.",
         fun: function () {
-          doRemove();
-          //console.log("Removes the current selection.");
+          cutNode();
         },
-      } /* ,
-      newMenu, */,
+      },
+      {
+        //pos: 0,
+        name: "Copy",
+        // img: 'images/brush.png',
+        title: "Copies the current selection.",
+        fun: function () {
+          copyNode();
+        },
+      },
+      {
+        //pos: 4,
+        name: "Delete",
+        //img: 'images/scissors.png',
+        title: "Deletes current selection.",
+        fun: function () {
+          doDelete();
+        },
+      }
     ];
 
     var pointIn = false;
@@ -1548,6 +1795,11 @@ class FileSystemServices {
           ) {
             menuSelected.splice(1, 0, openFileWithMenu);
           }
+          if (
+            menuSelected[0].name === "Paste"
+          ) {
+            menuSelected.splice(0, 1);
+          }
         } else {
           //file not selected. Remove openFileWithMenu
           if (
@@ -1556,8 +1808,32 @@ class FileSystemServices {
           ) {
             menuSelected.splice(1, 1);
           }
+          if (nodeToCopy) {
+            if (menuSelected[0].name !== "Paste") {
+              menuSelected.splice(0, 0, pasteMenu);
+            }
+          } else {
+            if (
+              menuSelected[0].name === "Paste"
+            ) {
+              menuSelected.splice(0, 1);
+            }
+          }
         }
       }
+
+      if (nodeToCopy) {
+        if (menuNotSelected[0].name !== "Paste") {
+          menuNotSelected.splice(0, 0, pasteMenu);
+        }
+      } else {
+        if (
+          menuNotSelected[0].name === "Paste"
+        ) {
+          menuNotSelected.splice(0, 1);
+        }
+      }
+
 
       var menu = filesTableRowSelected == true ? menuSelected : menuNotSelected;
       $("#explorerSaveAsModal").contextMenu(menu, {
@@ -1586,11 +1862,8 @@ class FileSystemServices {
       fileExtensions.push(listOfFileTypes[i].ext);
     }
 
-    function getChildren(nodeName, nodeParent) {
-      //console.log(nodeName, nodeParent)
-
+    function getChildren(nodeName) {
       var result = [];
-
       for (var i = 0; i < nodes.length; ++i) {
         if (nodes[i].path.length > nodeName.length) {
           if (
@@ -1663,7 +1936,7 @@ class FileSystemServices {
 
     function updateFilesTable() {
       clearFilesTable();
-      var children = getChildren(name, parentName);
+      var children = getChildren(name);
       for (var i = 0; i < children.length; ++i) {
         var _name = children[i].path;
         //console.log(_name)
@@ -1693,7 +1966,7 @@ class FileSystemServices {
       }
       $(".selected").not(this).removeClass("selected");
       selectRow($(this));
-      $("#parent").val(name);
+      $("#parent1").val(name);
       if ($(this).hasClass("selected")) {
         if ($(this).attr("data-tt-file") !== "file") {
           //we selected a folder
@@ -1729,25 +2002,22 @@ class FileSystemServices {
       $(this).toggleClass("selected");
       if ($(this).hasClass("selected")) {
         filesTableRowSelected = true;
+        selectedName = $(this).attr("id");
         if ($(this).attr("data-tt-file") == "file") {
           filesTableFileSelected = true;
           $("#name").val($(this).attr("data-tt-displayName"));
-          var ext = getFileExtension($("#name").val()) || ".all";
+          var ext = getFileExtension(selectedName) || ".all";
           $("#saveAsType").val(ext);
         } else {
           filesTableFileSelected = false;
         }
         currentSelectedRowSelector = $(this);
-        selectedName = $(this).attr("id");
-        //console.log("selectedName", selectedName);
       } else {
         filesTableRowSelected = false;
         currentSelectedRowSelector = null;
         rigthClickOnSelectedRow = false;
       }
       var _parent = $(this).attr("data-tt-parent-id");
-      // console.log(455, _parent)
-      //$("#foldersTable").treetable("expandNode", _parent);
     });
 
     $("#filesTable tbody").on("dblclick", "tr", function () {
@@ -1761,12 +2031,13 @@ class FileSystemServices {
         //var _name = $(this).attr("id");
         //console.log(111, _name)
         selectRow(_name);
-        $("#parent").val(_name);
+        $("#parent1").val(_name);
         updateFilesTable();
       } else {
-        if (!editing) openFile($(this).attr("data-tt-path"));
+        if (!editing) openFile($(this).attr("data-tt-path"), {});
       }
     });
+
 
     function drag(ev) {
       ev.originalEvent.dataTransfer.setData("text", $(this).attr("id"));
@@ -1799,24 +2070,73 @@ class FileSystemServices {
         if (originalPath == newName) {
           return;
         }
+        let m_data = { name: originalPath, newName: newName };
         $.ajax({
           method: "POST",
           url: m_fsServerUrl + "/rename",
           headers: {
             Authorization: "Bearer " + inMemoryToken,
           },
-          data: JSON.stringify({ name: originalPath, newName: newName }),
+          data: JSON.stringify(m_data),
           contentType: "application/json; charset=utf-8",
           dataType: "json",
           success: async function (data) {
             if (originalNode.attr("data-tt-file") === "file") {
-              await doInit(finalPath);
+              try {
+                await doInit(finalPath);
+              } catch {
+                console.log("doInit failed 7");
+                alert(`Initialisation failed. Please retry.`);
+              }
             } else {
-              await doInit(newName);
+              try {
+                await doInit(newName);
+              } catch {
+                console.log("doInit failed 8");
+                alert(`Initialisation failed. Please retry.`);
+              }
             }
           },
           error: function (err) {
-            console.log("move", err);
+            if (err.responseJSON.msg === "File with that name already exist") {
+              if (confirm(`File with the name "${newName}" already exist. Do you want to replace it?`)) {
+                m_data.replaceFile = true;
+                //console.log(456, m_data)
+                $.ajax({
+                  method: "POST",
+                  url: m_fsServerUrl + "/rename",
+                  headers: {
+                    Authorization: "Bearer " + inMemoryToken,
+                  },
+                  data: JSON.stringify(m_data),
+                  contentType: "application/json; charset=utf-8",
+                  dataType: "json",
+                  success: async function (data) {
+                    //console.log(457, m_data)
+                    if (originalNode.attr("data-tt-file") === "file") {
+                      try {
+                        await doInit(finalPath);
+                      } catch {
+                        console.log("doInit failed 9");
+                        alert(`Initialisation failed. Please retry.`);
+                      }
+                    } else {
+                      try {
+                        await doInit(newName);
+                      } catch {
+                        console.log("doInit failed 10");
+                        alert(`Initialisation failed. Please retry.`);
+                      }
+                    }
+                  },
+                  error: function (err) {
+                    //console.log(458, m_data)
+                    console.log(err.responseJSON);
+                  },
+                });
+              }
+              //console.log(err.responseJSON);
+            }
           },
         });
       }
@@ -1880,7 +2200,8 @@ class FileSystemServices {
 
     var initialized = false;
 
-    function openFile(filename, options) {
+    function openFile(filename, { editorName, options }) {
+      //console.log(2000, filename)
       options = options || { encoding: "utf8", flag: "r" };
       var _data = { name: filename, options: options };
       $.ajax({
@@ -1900,28 +2221,46 @@ class FileSystemServices {
             $("#imageLoader").hide();
         },
         success: function (data) {
-          openCb(data, getFileExtension(filename));
+          let editor = null;
+          if (editorName !== undefined) {//a specific editor is requested
+            editor = getEditorByName(editorName);
+          } else {
+            editor = getEditorByExt(getFileExtension(filename));
+          }
+          if (editor) {
+            editor.setData(data, filename, getFileExtension(filename), editorName);
+          } else { //If we get here, we use fs default setData() method
+            self.setData && self.setData(data, filename, getFileExtension(filename));
+          }
+          currentFilename = filename;
+          editorName = editorName || null;
+          $(window).trigger("fieOpened", [data, filename, getFileExtension(filename), editorName]);
         },
         error: function (returnval) {
           console.log(returnval.responseJSON);
-          alert(returnval.responseJSON.msg);
+          alert("Unexpected error. Please retry.");
         },
       });
     }
 
-    function openFileWith(options) {
-      openFile(currentSelectedRowSelector.attr("data-tt-path"), options);
+
+    function openFileWith(obj) {
+      openFile(currentSelectedRowSelector.attr("data-tt-path"), obj);
     }
 
     $("#dlgSaveButton").click(async () => {
       try {
         const ext =
           $("#saveAsType").val() == ".all" ? null : $("#saveAsType").val();
-        const data = getDataCb(ext);
-        if (!data) {
-          return;
+        let data = null;
+        const editor = getEditorByName($("#explorerSaveAsModal").attr("editorName"))
+        if (editor) {
+          data = editor.getData(ext);
+        } else {
+          data = self.getData(ext);
         }
-        await save(data);
+        await self.saveAs(data);
+        $("#explorerSaveAsModal").attr("editorName", null);
         $("#explorerSaveAsModal").modal("toggle");
       } catch {
         $("#name")[0].focus();
@@ -1932,8 +2271,9 @@ class FileSystemServices {
       $("#configModal").modal("toggle");
     });
 
-    this.configDlg = function () {
-      self.getConfigFs((data) => {
+    function doConfigDlg() {
+      getConfigFs((data) => {
+
         $("#rootDir").val(data.rootDir || "root:");
         $("#sep").val(data.sep || "\\");
         $("#dialog-background-color").val(
@@ -1942,20 +2282,28 @@ class FileSystemServices {
         $("#input-background-color").val(
           data.inputBackgroundColor || "#ffffff"
         );
+        $("#gridfs-storage").prop("checked", data.gridFsStorage);
         $("#configModal").modal();
       });
     };
 
     $("#config-ok-button").click(async () => {
+      configData.gridFsStorage = $("#gridfs-storage").prop("checked");
       configData.rootDir = $("#rootDir").val();
       configData.sep = $("#sep").val();
       configData.dialogBackgroundColor = $("#dialog-background-color").val();
       configData.inputBackgroundColor = $("#input-background-color").val();
-      self.setConfigFs(configData, async (err) => {
+      setConfigFs(configData, async (err) => {
         try {
-          await doInit(configData.rootDir);
+          try {
+            await doInit(configData.rootDir);
+          } catch {
+            console.log("doInit failed 11");
+            alert(`Initialisation failed. Please retry.`);
+          }
         } catch (err) {
           console.log("Init failed");
+          alert(`Initialisation failed. Please retry.`);
         }
         if (!err) {
           $("#configModal").modal("toggle");
@@ -1987,43 +2335,23 @@ class FileSystemServices {
       return re.test(email);
     }
 
-    $(window).on("connected", () => {
-      showExplorerButton();
-      showSaveAsButton();
-    })
-
-    $(window).on("disconnected", () => {
-      hideExplorerButton();
-      hideSaveAsButton();
-    })
 
     $("#dlg-ok-button").on("click", () => {
       if ($("#dlg-title").html() == "Sign In") {
         self.connectFs(
           $("#registerLoginForm").serializeJSON(),
           (data) => {
-            //console.log(1235, data.error)
+            //console.log(1235, data)
             if (data.error) {
               alert(data.msg);
+              if (data.msg === "Not registered.")
+                doRegister();
+              return;
             } else {
               $("#dlg-password").val("");
               if (mongoFsLoginLogoutRegisterSeletor) {
-                let innerHtml = mongoFsLoginLogoutRegisterSeletor.html();
-                innerHtml = innerHtml.replace(
-                  "Mongo File System(MFS) ",
-                  "Logout from MFS "
-                );
-                mongoFsLoginLogoutRegisterSeletor.html(innerHtml);
-                mongoFsLoginLogoutRegisterSeletor.attr(
-                  "title",
-                  "Logout from Mongo File System"
-                );
-                mongoFsLoginLogoutRegisterSeletor.contextMenu([]);
+                mongoFsLoginLogoutRegisterSeletor.contextMenu(mongoFsLoginLogoutRegisterMenu2);
               }
-
-              /* showExplorerButton();
-              showSaveAsButton(); */
-
               console.log(data.msg);
               $("#registerLoginModal").modal("toggle");
             }
@@ -2038,7 +2366,7 @@ class FileSystemServices {
           alert("Password different from repeat-password");
           return;
         }
-        
+
         self.registerFs(
           $("#registerLoginForm").serializeJSON(),
           (data) => {
@@ -2074,7 +2402,7 @@ class FileSystemServices {
     });
 
     $("#configButton").click(() => {
-      self.configDlg();
+      doConfigDlg();
     });
 
     $("#dlg-cancel-button").on("click", () => {
@@ -2090,143 +2418,33 @@ class FileSystemServices {
     //console.log(111, mongoFsLoginLogoutRegisterSeletor)
     if (mongoFsLoginLogoutRegisterSeletor) {
       const glyphiconUser = $('<span class="glyphicon glyphicon-user"></span>');
-      mongoFsLoginLogoutRegisterSeletor.html("Mongo File System(MFS) ");
+      mongoFsLoginLogoutRegisterSeletor.html("Mongo File System(MFS)");
       mongoFsLoginLogoutRegisterSeletor.append(glyphiconUser);
       mongoFsLoginLogoutRegisterSeletor.attr(
         "title",
         "Register for or Login to Mongo File System"
       );
 
-      self.login = function () {
-        doLogin();
-      }
-
-      self.register = function () {
-        doRegister();
-      }
-
-      let mongoFsLoginLogoutRegisterMenu = [
-        {
-          name: "Register",
-          title: "Register for Mongo File System",
-          fun: self.register,
-        },
-        {
-          name: "Login",
-          title: "Login to Mongo File System",
-          //fun: self.loginDlg,
-          fun: self.login
-        },
-      ];
       mongoFsLoginLogoutRegisterSeletor.contextMenu(
         mongoFsLoginLogoutRegisterMenu
       );
 
-      mongoFsLoginLogoutRegisterSeletor.click(() => {
-        if (mongoFsLoginLogoutRegisterSeletor) {
-          if (
-            mongoFsLoginLogoutRegisterSeletor
-              .html()
-              .indexOf("Logout from MFS") !== -1
-          ) {
-            self.disconnectFs((data) => {
-              if (data.error) return console.log(data.msg);
-              if (mongoFsLoginLogoutRegisterSeletor) {
-                let innerHtml = mongoFsLoginLogoutRegisterSeletor.html();
-                innerHtml = innerHtml.replace(
-                  "Logout from MFS ",
-                  "Mongo File System(MFS) "
-                );
-                mongoFsLoginLogoutRegisterSeletor.html(innerHtml);
-                mongoFsLoginLogoutRegisterSeletor.attr(
-                  "title",
-                  "Register for or Login to Mongo File System"
-                );
-                mongoFsLoginLogoutRegisterSeletor.contextMenu(
-                  mongoFsLoginLogoutRegisterMenu
-                );
-              }
-              console.log(data.msg);
-
-              /* hideExplorerButton();
-              hideSaveAsButton(); */
-
-              //breakdown();
-
-            });
-          }
-        }
-      });
     }
 
-    let mongoFsExplorerSeletor = $(".mongo-fs-explorer");
-    if (!mongoFsExplorerSeletor[0]) mongoFsExplorerSeletor = null;
-    if (mongoFsExplorerSeletor) {
-      let innerHtml = $(".mongo-fs-explorer").html().length ? $(".mongo-fs-explorer").html() : "File Explorer";
-      mongoFsExplorerSeletor.html(innerHtml);
-      mongoFsExplorerSeletor.click(() => {
-        self.explorerDlg();
-      });
-    }
-
-    function showExplorerButton() {
-      $(".mongo-fs-explorer").show();
-    }
-
-    function hideExplorerButton() {
-      if (!$(".mongo-fs-explorer").hasClass("hiding-enable")) return;
-      $(".mongo-fs-explorer").hide();
-    }
-    hideExplorerButton()
-    //showExplorerButton()
-
-    let mongoFsSaveAsSeletor = $(".mongo-fs-save-as");
-    if (!mongoFsSaveAsSeletor[0]) mongoFsSaveAsSeletor = null;
-    if (mongoFsSaveAsSeletor) {
-      let innerHtml = $(".mongo-fs-save-as").html().length ? $(".mongo-fs-save-as").html() : "Save";
-      mongoFsSaveAsSeletor.html(innerHtml);
-      mongoFsSaveAsSeletor.click(() => {
-        self.saveDlg();
-      });
-    }
-
-    function showSaveAsButton() {
-      $(".mongo-fs-save-as").show();
-    }
-
-    function hideSaveAsButton() {
-      if (!$(".mongo-fs-save-as").hasClass("hiding-enable")) return;
-      $(".mongo-fs-save-as").hide();
-    }
-    hideSaveAsButton()
-    //showSaveAsButton()
-
-    this.saveDlg = function () {
-      if (!inMemoryToken) return alert("Not connected...");
-      $("#dlgTitle").html("Save As");
-      $("#inputFields").show();
-      $("#explorerSaveAsModal").modal();
-      this.init();
-    };
-
-    this.explorerDlg = function () {
-      if (!inMemoryToken) return alert("Not connected...");
-      $("#dlgTitle").html("File Explorer");
-      $("#inputFields").hide();
-      $("#explorerSaveAsModal").modal();
-      $("#saveAsType").val(".all");
-      this.init();
-    };
-
-    function save(fileData) {
+    this.saveAs = function (fileData, _flag) {
       return new Promise((resolve, reject) => {
+        //console.log(225)
+        const flag = _flag || "wx";
         var _data = {};
-        _data.name = $("#parent").val() + configData.sep + $("#name").val();
+        _data.options = { encoding: "utf8", mode: 0o666, flag };
+        _data.name = $("#parent1").val() + configData.sep + $("#name").val();
         _data.data = fileData;
         const ext = $("#saveAsType").val();
         if (ext !== ".all") {
           _data.name += ext;
         }
+        currentFilename = _data.name;
+        $(window).trigger("beforeEditorSaveAs", [_data.name]);
         $.ajax({
           method: "POST",
           url: m_fsServerUrl + "/createFile",
@@ -2245,10 +2463,67 @@ class FileSystemServices {
               $("#imageLoader").hide();
           },
           success: function (data) {
+            $(window).trigger("afterSave");
+            $(window).trigger("fileSaved", [_data.name, $("#explorerSaveAsModal").attr("editorName")]);
+            $(window).trigger("afterEditorSaveAs", [_data.name, $("#explorerSaveAsModal").attr("editorName")]);
+            //currentFileSaved();
             resolve(true);
           },
-          error: function (returnval) {
-            alert(returnval.responseJSON.msg);
+          error: async function (err) {
+            if (confirm(`A file with the name "${_data.name}" already exist. Would you like to replace it ?`)) {
+              try {
+                await self.saveAs(fileData, "w");
+                $(window).trigger("fileSaved", [_data.name, $("#explorerSaveAsModal").attr("editorName")]);
+                $(window).trigger("afterEditorSaveAs", [_data.name, $("#explorerSaveAsModal").attr("editorName")]);
+                resolve(true);
+              } catch (err) {
+                $(window).trigger("afterEditorSaveAs", [_data.name, $("#explorerSaveAsModal").attr("editorName")]);
+                reject(false);
+              }
+            } else {
+              $(window).trigger("afterEditorSaveAs", [_data.name, $("#explorerSaveAsModal").attr("editorName")]);
+              reject(false);
+            }
+          },
+        });
+      });
+    }
+
+    this.save = function (filename, fileData/* , _flag */) {
+      return new Promise((resolve, reject) => {
+        $(window).trigger("beforeSave", filename);
+        var _data = {};
+        _data.options = { encoding: "utf8", mode: 0o666, flag: "w" };
+        _data.name = filename;
+        _data.data = fileData;
+        const ext = getFileExtension(filename);
+        if (!ext) {
+          _data.name += ".all";
+        }
+        $.ajax({
+          method: "POST",
+          url: m_fsServerUrl + "/writeFile",
+          headers: {
+            Authorization: "Bearer " + inMemoryToken,
+          },
+          data: JSON.stringify(_data),
+          contentType: "application/json; charset=utf-8",
+          dataType: "json",
+          beforeSend: function () {
+            if (imageLoaderSrc)
+              $("#imageLoader").show();
+          },
+          complete: function () {
+            if (imageLoaderSrc)
+              $("#imageLoader").hide();
+          },
+          success: function (data) {
+            $(window).trigger("afterSave")
+            $(window).trigger("fileSaved", [filename, $("#explorerSaveAsModal").attr("editorName")]);
+            //currentFileSaved()
+            resolve(true);
+          },
+          error: function (err) {
             reject(false);
           },
         });
@@ -2277,6 +2552,7 @@ class FileSystemServices {
           url: m_fsServerUrl + "/tree",
           success: function (data) {
             nodes = data.tree;
+            //console.log(1000, nodes)
             if (initialized) {
               $("#foldersTable").treetable("removeNode", prevRoot);
             } else {
@@ -2301,7 +2577,9 @@ class FileSystemServices {
             selectRow(selectedFolder);
             updateFilesTable();
             var m_name = selectedFolder;
-            $("#parent").val(m_name);
+            //console.log(222, m_name)
+            $("#parent1").val(m_name);
+
             resolve(true);
           },
           error: function (returnval) {
@@ -2311,22 +2589,21 @@ class FileSystemServices {
       });
     }
 
-    this.init = async function () {
+    async function init() {
       try {
         await doInit(configData.rootDir);
       } catch (err) {
-        console.log("Init failed");
+        console.log("doInit failed 13");
+        alert(`Initialisation failed. Please retry.`);
       }
     };
 
-    //email is optional
-    //this.registerFs = function (name, pass, email, cb) {
+    /* email is optional */
     this.registerFs = function (registerData, cb) {
-      //let data = { username: name, password: pass, email };
-      /* if (typeof email !== "string") {
-        data.email = "";
-        cb = email;
-      } */
+      if (typeof registerData === "function") {
+        cb = registerData;
+        registerData = undefined;
+      }
       $.ajax({
         method: "POST",
         url: m_fsServerUrl + "/registerFs",
@@ -2337,15 +2614,15 @@ class FileSystemServices {
         contentType: "application/json; charset=utf-8",
         dataType: "json",
         success: function (data) {
-          cb(data);
+          cb && cb(data);
         },
         error: function (data) {
-          cb(data);
+          cb && cb(data);
         },
       });
     };
 
-    this.getConfigFs = function (cb) {
+    function getConfigFs(cb) {
       $.ajax({
         method: "GET",
         url: m_fsServerUrl + "/config",
@@ -2363,7 +2640,7 @@ class FileSystemServices {
       });
     };
 
-    this.setConfigFs = function (data, cb) {
+    function setConfigFs(data, cb) {
       $.ajax({
         method: "POST",
         url: m_fsServerUrl + "/config",
@@ -2382,10 +2659,11 @@ class FileSystemServices {
       });
     };
 
-
-
-    //this.connectFs = function (username, password, cb) {
     this.connectFs = function (connectData, cb) {
+      if (typeof connectData === "function") {
+        cb = connectData;
+        connectData = undefined;
+      }
       $.ajax({
         method: "POST",
         url: m_fsServerUrl + "/connect",
@@ -2394,22 +2672,34 @@ class FileSystemServices {
         dataType: "json",
         success: function (data) {
           inMemoryToken = data.accessToken;
-          self.storeRefreshToken(data.refreshToken);
+          if (!options.sameDomain) {
+            self.storeRefreshToken(data.refreshToken);
+          }
           clearTimeout(timer);//ensure any earlier timeout is cleared
           countDown(); //monitor expiration
           configData = data.configData;
           name = configData.rootDir;
-
           cb && cb({ error: false, msg: "Connected" });
-          $(window).trigger("connected", connectData.username);
+          $(window).trigger("connected", data.username);
         },
         error: function (data) {
+          //console.log(4001, data)
           cb && cb(data.responseJSON);
         },
       });
     };
 
     this.disconnectFs = function (cb) {
+      $(window).trigger("disconnected");
+      stopCountDown();
+      // to support logging out from all windows
+      localStorage.setItem('logout', Date.now());
+      const refreshToken = self.getRefreshToken();
+      if (!refreshToken) {
+        inMemoryToken = null;
+        cb && cb({ error: false, msg: "Disconnected: refresh token not found" });
+        return;
+      }
       $.ajax({
         method: "POST",
         url: m_fsServerUrl + "/disconnect",
@@ -2417,16 +2707,12 @@ class FileSystemServices {
           Authorization: "Bearer " + inMemoryToken,
         },
         contentType: "application/json; charset=utf-8",
-        data: JSON.stringify({ refreshToken: self.getRefreshToken() }),
+        data: JSON.stringify({ refreshToken }),
         dataType: "json",
         success: function (data) {
           inMemoryToken = null;
           self.clearRefreshToken();
-          stopCountDown();
-          // to support logging out from all windows
-          localStorage.setItem('logout', Date.now())
           cb && cb({ error: false, msg: "Disconnected" });
-          $(window).trigger("disconnected");
         },
         error: function (data) {
           cb && cb({ error: true, msg: data.responseJSON });
@@ -2439,7 +2725,7 @@ class FileSystemServices {
     }
 
     window.addEventListener('storage', (event) => {
-      console.log("event.key", event.key)
+      //console.log("event.key", event.key)
       if (event.key === 'logout') {
         console.log('logged out from storage!');
         //location.reload()
@@ -2461,68 +2747,55 @@ class FileSystemServices {
       });
     }
 
-    /* window.addEventListener("beforeunload", function (e) {
-      //self.disconnectFs();
+    window.addEventListener("beforeunload", function (e) {
+      if (!options.persistSession) self.disconnectFs();
       breakdown();
-    }); */
+    });
 
-    setup();
 
-    //(function () {
-    // setup();
-    stopCountDown()
-    if (options.persistSession) {
-      refresh(async (err, data) => {
-        if (err) {
-          console.log(data)
-        } else {
-          $.ajax({
-            method: "POST",
-            url: m_fsServerUrl + "/re-connect",
-            headers: {
-              Authorization: "Bearer " + inMemoryToken,
-            },
-            //data: JSON.stringify({ sameDomain: options.sameDomain, accessTokenExpiry: options.accessTokenExpiry }),
-            contentType: "application/json; charset=utf-8",
-            dataType: "json",
-            success: function (data) {
-              //console.log(458);
-              if (mongoFsLoginLogoutRegisterSeletor) {
-                let innerHtml = mongoFsLoginLogoutRegisterSeletor.html();
-                innerHtml = innerHtml.replace(
-                  "Mongo File System(MFS) ",
-                  "Logout from MFS "
-                );
-                mongoFsLoginLogoutRegisterSeletor.html(innerHtml);
-                mongoFsLoginLogoutRegisterSeletor.attr(
-                  "title",
-                  "Logout from Mongo File System"
-                );
-                mongoFsLoginLogoutRegisterSeletor.contextMenu([]);
-              }
+    window.addEventListener('load', (event) => {
+      this.clearRefreshToken();
+    });
 
-              configData = data.configData;
-              name = configData.rootDir;
-              /* showExplorerButton();
-              showSaveAsButton(); */
-              $(window).trigger("connected", data.username);
-
-            },
-            error: function (data) {
-              //console.log(459);
-              console.log(data);
-            },
-          });
-        }
-      });
-    } else {
-      breakdown();
-      self.clearRefreshToken();
+    function refreshSession() {
+      if (options.persistSession) {
+        refresh((err, data) => {
+          if (err) {
+            console.log(data.responseJSON.msg)
+          } else {
+            $.ajax({
+              method: "POST",
+              url: m_fsServerUrl + "/re-connect",
+              headers: {
+                Authorization: "Bearer " + inMemoryToken,
+              },
+              contentType: "application/json; charset=utf-8",
+              dataType: "json",
+              success: function (data) {
+                if (mongoFsLoginLogoutRegisterSeletor) {
+                  mongoFsLoginLogoutRegisterSeletor.attr(
+                    "title",
+                    "Logout from Mongo File System"
+                  );
+                  mongoFsLoginLogoutRegisterSeletor.contextMenu([]);
+                }
+                configData = data.configData;
+                name = configData.rootDir;
+                $(window).trigger("connected", data.username);
+              },
+              error: function (data) {
+                console.log(data);
+              },
+            });
+          }
+        });
+      } else {
+        self.clearRefreshToken();
+      }
     }
 
-
-
     function setup() {
+      //self.clearRefreshToken();
       $.ajax({
         method: "POST",
         url: m_fsServerUrl + "/setup",
@@ -2530,16 +2803,363 @@ class FileSystemServices {
         contentType: "application/json; charset=utf-8",
         dataType: "json",
         success: function (data) {
-          accessTokenExpiry = data.accessTokenExpiry;
-          //console.log("accessTokenExpiry",  accessTokenExpiry)
+          refreshSession();
         },
         error: function (data) {
           console.log(data);
         },
       });
     }
+    setup();
+  }
 
+
+  getRefreshToken() {
+    return localStorage.getItem("RefreshToken");
+  }
+
+  storeRefreshToken(token) {
+    localStorage.setItem("RefreshToken", token);
+  }
+
+  clearRefreshToken() {
+    localStorage.removeItem("RefreshToken");
+  }
+
+  enableNotepad() {
+    const editorSelector = $('<div id="notepadModal" class="modal fade" role="dialog" data-backdrop="static" data-keyboard="false"> <div class="modal-dialog" role="document" style="width: 98%;"> <div class="modal-content"> <div class="modal-header"> <img src="https://cdn.jsdelivr.net/gh/cah12/fs-mongo/img/file.png"> <label class="modal-title" id="notepadModalLabel">Mongo Notepad</label> <button id="closeXButton100" type="button" class="close" aria-label="Close"> <span aria-hidden="true">&times;</span> </button> </div> <div class="modal-body" > <textarea id="myNotepad" autocomplete="false" spellcheck="false" style="outline: none; resize: none; width: 100%;"></textarea> </div> <div class="modal-footer"> <button id="closeButton" type="button" class="btn btn-secondary">Close</button> <button id="notepadOpenFile" type="button" class="btn btn-primary">Open file</button> <button id="notepadSaveAs" type="button" class="btn btn-primary">Save As</button> <button id="notepadSave" type="button" class="btn btn-primary" disabled>Save</button> </div> </div> </div> </div>');
+    $("body").append(editorSelector);
+    $("#myNotepad").css("height", $(window).height() * 0.71);
+
+    const options = {} 
+    options.fs = this;
+    options.editorName = "Text Editor";
+    options.fileExtensions = ['.txt', null];
+    options.explorerDialogParentId = "notepadModal";
+    options.idsOpen = "notepadOpenFile";
+    options.idsClose = ["closeButton", "closeXButton100"];
+    options.idsSave = "notepadSave";
+    options.idsSaveAs = "notepadSaveAs";
+    options.idEditorLabel = "notepadModalLabel"
+
+    this.notepad = new MongoNotepad(options/* this, "Text Editor", ['.txt', null], "notepadModal" */);
+    this.registerEditor({ name: "Text Editor", editor: this.notepad });
+    this.addNotepadMenuItem();
+  }
+
+  //returns data. Subclass must re-implement
+  /* getData() {
+    console.error("getData (): Not re-implemented.");
+  }
+
+  //returns data. Subclass must re-implement
+  setData(data) {
+    console.warn("setData (): Not re-implemented.");
+    console.log(data);
+  } */
+
+}
+
+/* 
+const options = {} 
+    options.fs = fs;
+    options.editorName = "Text Editor";
+    options.fileExtensions = ['.txt', null];
+    options.explorerDialogParentId = "notepadModal";
+    options.idsOpen = "notepadOpenFile";
+    options.idsClose = ["closeButton", "closeXButton100"];
+    options.idsSave = "notepadSave";
+    options.idsSaveAs = "notepadSaveAs";
+    options.idEditorLabel = "notepadModalLabel";
+*/
+
+class Editor {
+  constructor(obj/* fs, editorName, exts, explorerDialogParentId */) {
+    /* const idsOpen = "notepadOpenFile";
+    const idsClose = ["closeButton", "closeXButton100"];
+    const idsSave = "notepadSave";
+    const idsSaveAs = "notepadSaveAs";
+    const idEditorLabel = "notepadModalLabel"; */
+
+    const {fs, editorName, fileExtensions, explorerDialogParentId, idsOpen, idsClose, idsSave, idsSaveAs, idEditorLabel} = obj;
+
+    const self = this;
+    self.m_data = {};
+    self.m_data.m_fs = fs;
+    self.m_data.m_editor_opened = false;
+    self.m_data.currentFilename = null;
+    self.m_data.currentFileModified = false;
+    self.m_data.currentFileSaving = false;
+    self.m_data.name = editorName; //e.g. "Text Editor"
+    self.m_data.editorSelector = !explorerDialogParentId? $("body") : $(`#${explorerDialogParentId}`);
+
+    
+    const extensions = fileExtensions;
+
+    let modifiedname = editorName.replaceAll(" ", "");
+    let classes = {};
+    classes.close = `${modifiedname}Close`;
+    classes.open = `${modifiedname}Open`;
+    classes.save = `${modifiedname}Save`;
+    classes.saveAs = `${modifiedname}SaveAs`;
+    classes.editorLabel = `${modifiedname}EditorLabel`;
+
+    /* classes.editorLabel = null;
+    if (idEditorLabel) {
+      classes.editorLabel = `${idEditorLabel}EditorLabel`;
+      $(`#${idEditorLabel}`).addClass(classes.editorLabel);
+    } */
+
+
+
+    function addClassToElements(ids, classType) {
+      let _ids = [];
+      if (typeof ids === "string") {
+        _ids.push(ids);
+      } else {
+        _ids = ids;
+      }
+      for (let i = 0; i < _ids.length; ++i) {
+        $(`#${_ids[i]}`).addClass(classes[classType]);
+      }
+    }
+
+    idsClose && addClassToElements(idsClose, "close");
+    idsOpen && addClassToElements(idsOpen, "open")
+    idsSave && addClassToElements(idsSave, "save");
+    idsSaveAs && addClassToElements(idsSaveAs, "saveAs");
+    idEditorLabel && addClassToElements(idEditorLabel, "editorLabel");
+
+    $(window).bind("fileSaved", function (e, filename, editorName) {
+      if (editorName === self.m_data.name) {
+        self.m_data.currentFileSaving = false;
+        self.m_data.currentFileModified = false;
+
+        $(`.${classes.save}`).attr("disabled", true);
+        $(`.${classes.editorLabel}`).html(self.m_data.currentFilename + " - Mongo Notepad");
+      }
+    });
+
+    $(window).bind("fieOpened", function (e, data, filename, ext, editorName) {
+      if (editorName === self.m_data.name) {
+        self.m_data.currentFilename = filename;
+      }
+    });
+
+    async function doSave() {
+      if (self.m_data.currentFilename) {
+        try {
+          if (!self.m_data.currentFileModified || self.m_data.currentFileSaving) {
+            return;
+          }
+          self.m_data.currentFileSaving = true;
+          let el = $("#imageLoader").detach();
+          self.m_data.editorSelector.append($(el));
+          await self.m_data.m_fs.save(self.m_data.currentFilename, self.getData());
+          self.m_data.currentFileSaving = false;
+          self.m_data.currentFileModified = false;
+          el = $("#imageLoader").detach();
+          $("#explorerSaveAsModal").append($(el));
+          $(window).trigger("afterEditorSave", [self.m_data.m_editor_name]);
+        } catch (err) {
+          console.log(err)
+          self.m_data.currentFileSaving = false;
+        }
+      } else {
+        self.m_data.m_fs.doSaveDlg();
+      }
+    }
+
+
+    this.currentFileModified = function (modified) {
+      if (modified === undefined)
+        return self.m_data.currentFileModified;
+      self.m_data.currentFileModified = modified;
+
+      if (modified) {
+        let title = $(`.${classes.editorLabel}`).html();
+        if (title  && title.charAt(0) !== "*") {
+          $(`.${classes.editorLabel}`).html(`*${title}`);
+        }
+        if (self.currentFilename()) {
+          $(`.${classes.save}`).attr("disabled", false);
+        }
+      }
+    }
+
+    this.editorOpened = function (opened) {
+      if (opened === undefined)
+        return self.m_data.m_editor_opened;
+      self.m_data.m_editor_opened = opened;
+      if (!opened) {
+        self.m_data.m_fs.currentFilename(null);
+        self.currentFileModified(false);
+        self.currentFilename(null);
+      }
+    }
+
+    this.currentFilename = function (filename) {
+      if (filename === undefined)
+        return self.m_data.currentFilename;
+      self.m_data.currentFilename = filename;
+    }
+
+    this.save = function () {
+      /* if (!self.m_data.m_editor_opened) {
+        return;
+      } */
+      $("#explorerSaveAsModal").attr("editorName", self.m_data.name)
+      doSave();
+      return true;
+    }
+
+    this.saveAs = function () {
+      /* if (!self.m_data.m_editor_opened) {
+        return;
+      } */
+      self.setExplorerDlgParent(self.m_data.editorSelector);
+      $("#explorerSaveAsModal").attr("editorName", self.m_data.name)
+      self.m_data.m_fs.doSaveDlg();
+    }
+
+    this.openFile = function () {
+      /* if (!self.m_data.m_editor_opened) {
+        return;
+      } */
+      self.setExplorerDlgParent(self.m_data.editorSelector);
+      self.m_data.m_fs.doExplorerDlg();
+    }   
+
+
+    this.getExtensions = function () {
+      return extensions;
+    }
+
+    this.setExplorerDlgParent = function (parent) {
+      let el = $("#explorerSaveAsModal").detach();
+      parent.append($(el));
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+
+    $(`.${classes.open}`).click(function () {
+      self.openFile();
+    });
+
+    $(`.${classes.saveAs}`).click(function () {
+      self.saveAs();
+    });
+
+    $(`.${classes.save}`).click(function () {
+      self.save();
+    });
+
+    let saveAsFromClose = false;
+    $(window).bind("afterEditorSaveAs", function (e, filename, editorName) {
+      if (editorName === self.m_data.name) {
+        if (saveAsFromClose) {
+          self.closeEditor && self.closeEditor();
+          self.setExplorerDlgParent($("body"));
+          self.editorOpened(false);
+          saveAsFromClose = false;
+        } else {
+          $(`.${classes.editorLabel}`).html(filename + " - Mongo Notepad");
+          self.currentFilename(filename);
+        }
+      }
+    });
+
+    $(`.${classes.close}`).click(function () {
+      const fname = self.m_data.currentFilename || "Untitled";
+      if (self.currentFileModified()) {
+        const ans = confirm(`Do you want to save changes to ${fname}.`)
+        if (ans) {
+          if (fname == "Untitled") {
+            saveAsFromClose = true;
+            $(`.${classes.saveAs}`).click();
+          } else {
+            $(`.${classes.save}`).click();
+            self.closeEditor && self.closeEditor();
+            self.setExplorerDlgParent($("body"));
+            self.editorOpened(false);
+          }
+          return;
+        }        
+      }
+      self.closeEditor && self.closeEditor();
+        self.setExplorerDlgParent($("body"));
+        self.editorOpened(false);
+    });
 
 
   }
+
+  initEditor() {
+    $("#notepadSave").attr("disabled", true)
+    $("#notepadModalLabel").html("Untitled - Mongo Notepad");
+    this.editorOpened(true);
+    this.setExplorerDlgParent($("body"));
+  }
+
+  //subclass must re-implement these methods. 
+  getData() {
+    console.error("getData (): Not re-implemented.");
+  }
+
+  //subclass must re-implement
+  setData(data, filename, ext, editorName) {
+    console.error("setData (): Not re-implemented.");
+  }
+
 }
+
+
+
+class MongoNotepad extends Editor {
+  constructor(obj/* fs, name, exts, explorerDialogParentId */) {
+    super(obj/* fs, name, exts, explorerDialogParentId */);
+    const self = this;
+
+    $(window).bind("fileSaved", function (e, filename, editorName) {
+      if (editorName === self.m_data.name) {
+        $("#myNotepad").focus();
+      }
+    });
+
+    $("#myNotepad").on("input", function () {
+      self.currentFileModified(true);
+    });
+
+  }
+
+  initEditor() {
+    $("#myNotepad")[0].value = "";
+  }
+
+  ///sub class implement
+  openEditor() {
+    super.initEditor();
+    this.initEditor();
+    $("#notepadModal").modal("show");
+  }
+
+  closeEditor() {
+    $("#notepadModal").modal('hide');
+  }
+
+  getData() {
+    return $("#myNotepad").val();
+  }
+
+  setData(data, filename) {
+    if (!this.editorOpened()) {
+      this.openEditor();
+    }
+    this.currentFilename(filename);
+    $("#myNotepad")[0].value = data;
+    $("#notepadModalLabel").html(filename + " - Mongo Notepad");
+  }
+}
+
+
+//notepad.show()
