@@ -2350,7 +2350,7 @@ class FileSystemServices {
             } else {
               $("#dlg-password").val("");
               if (mongoFsLoginLogoutRegisterSeletor) {
-                mongoFsLoginLogoutRegisterSeletor.contextMenu(mongoFsLoginLogoutRegisterMenu2);
+                mongoFsLoginLogoutRegisterSeletor.contextMenu(mongoFsLoginLogoutRegisterMenu2, {zIndex: 1000});
               }
               console.log(data.msg);
               $("#registerLoginModal").modal("toggle");
@@ -2425,9 +2425,7 @@ class FileSystemServices {
         "Register for or Login to Mongo File System"
       );
 
-      mongoFsLoginLogoutRegisterSeletor.contextMenu(
-        mongoFsLoginLogoutRegisterMenu
-      );
+      mongoFsLoginLogoutRegisterSeletor.contextMenu(mongoFsLoginLogoutRegisterMenu, {zIndex: 1000});
 
     }
 
