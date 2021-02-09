@@ -811,6 +811,8 @@ class FileSystemServices {
   constructor(_options) {
 
     const self = this;
+    //self.hasModifiedFile = false;
+    //self.modifiedFiles = 0;
     let inMemoryToken = null;
     let options = _options || {};
     options.accessTokenExpiry = options.accessTokenExpiry || 10; //initialize with 10 secs if undefined
@@ -866,6 +868,8 @@ class FileSystemServices {
      console.log(446, imageFileSrc) */
 
     let editors = [];//holds objects {name: "Text Editor", editor: nodepad-obj}
+
+    const chooseEditor = new ChooseEditor();
 
     this.registerEditor = function (editor) {
       editors.push(editor);
@@ -925,9 +929,7 @@ class FileSystemServices {
     function doLogout() {
       self.disconnectFs((data) => {
         if (data.error) return console.log(data.msg);
-        mongoFsLoginLogoutRegisterSeletor.contextMenu(
-          mongoFsLoginLogoutRegisterMenu
-        );
+        mongoFsLoginLogoutRegisterSeletor.contextMenu(mongoFsLoginLogoutRegisterMenu, { zIndex: 2000 });
         console.log(data.msg);
       });
     }
@@ -952,9 +954,9 @@ class FileSystemServices {
     ];
 
     this.addMongoFsMenuItems = function (menuItems) {
-      for(let i=0; i<menuItems.length;++i){
+      for (let i = 0; i < menuItems.length; ++i) {
         mongoFsLoginLogoutRegisterMenu2.push(menuItems[i]);
-      }      
+      }
     }
 
     this.addNotepadMenuItem = function () {
@@ -996,6 +998,14 @@ class FileSystemServices {
     );
     $("body").append(configDlg);
 
+    saveDlg.append($('<div id="chooseEditorModal" class="modal fade" role="dialog" data-backdrop="static" data-keyboard="false"> <div class="modal-dialog"> <!-- Modal content--> <div class="modal-content"> <div class="modal-header"><button id="chooseEditorCancelX" type="button" class="close">&times;</button> <h4 id="dlg-title" style="text-align: center;" class="modal-title">How would you like to open this file?</h4> </div> <div class="modal-body"><br> <div class="container"></div> <div class="row"> <div class="col-sm-1"></div> <div class="col-sm-10"> <div class="row"> <form id="chooseEditorTable" style="width: 100%;"> </form> </div> <br> <div class="row"> <label><input id="alwaysUse" type="checkbox"><span id="alwaysUseLabel"></span></label> </div> <br> <div class="row"> <div class="col-sm-6"><input type="button" id="chooseEditorCancel" class="btn btn-primary" value="Cancel" style="width: 100%" ; /></div> <div class="col-sm-6"><input type="button" id="chooseEditorOk" class="btn btn-primary" value="Ok" style="width: 100%" ; /></div> </div> </div> </div> </div> </div> </div> </div>'));
+
+    
+    /* var chooseEditorDlg = $(
+      '<div id="chooseEditorModal" class="modal fade" role="dialog" data-backdrop="static" data-keyboard="false"> <div class="modal-dialog"> <!-- Modal content--> <div class="modal-content"> <div class="modal-header"><button type="button" class="close" data-dismiss="modal">&times;</button> <h4 id="dlg-title" style="text-align: center;" class="modal-title">How would you like to open this file?</h4> </div> <div class="modal-body"><br> <div class="container"></div> <div class="row"> <div class="col-sm-1"></div> <div class="col-sm-10"> <div class="row"> <table class="config-table" style="width: 100%;"> <tr class="config-table"> <th class="config-table">Propery</th> <th class="config-table">Value</th> </tr> <tr class="config-table"> <td class="config-table">Root directory name</td> <td class="config-table"><input id="rootDir" type="text" style="width: 100%;" value="root:" /></td> </tr> <tr class="config-table"> <td class="config-table">Separator</td> <td class="config-table"><input id="sep" type="text" style="width: 100%;" value="" /></td> </tr> <tr class="config-table"> <td class="config-table">Dialog background color</td> <td class="config-table"><input id="dialog-background-color" type="color" value="#ffffff" /></td> </tr> <tr class="config-table"> <td class="config-table">Input background color</td> <td class="config-table"><input id="input-background-color" type="color" value="#ffffff" /></td> </tr> <tr class="config-table"> <td class="config-table">Store new files with GridFs</td> <td class="config-table"><input id="gridfs-storage" type="checkbox" checked /></td> </tr> </table> </div> <br> <div class="row"> <div class="col-sm-4"><input type="button" id="config-cancel-button" class="btn btn-primary" value="Cancel" style="width: 100%" ; /></div> <div class="col-sm-4"><input type="button" id="config-restore-button" class="btn btn-primary" value="Restore Defaults" style="width: 100%" ; /></div> <div class="col-sm-4"><input type="button" id="config-ok-button" class="btn btn-primary" value="Ok" style="width: 100%" ; /></div> </div> </div> </div> </div> </div> </div> </div>'
+    );
+    $("body").append(chooseEditorDlg); */
+
     if (imageLoaderSrc)
       saveDlg.append(
         $(
@@ -1005,6 +1015,9 @@ class FileSystemServices {
 
     var configData = null;
 
+    $("#chooseEditorCancel, #chooseEditorCancelX").click(function(){
+      $("#chooseEditorModal").modal("hide");
+    });
 
     $("#config-restore-button").click(() => {
       configData.dialogBackgroundColor = "#ffffff";
@@ -1063,6 +1076,7 @@ class FileSystemServices {
     });
 
     $("#saveDlgClose").click(function () {
+      $("#explorerSaveAsModal").attr("editorName", null);
       saveDlg.modal("hide");
     })
 
@@ -1494,6 +1508,29 @@ class FileSystemServices {
     }
 
     let openFileWithSubmenu = [];
+
+    async function openFileWithEditorChoosenByExt() {
+      const filename = selectedName.replace("f", "");
+      let ext = selectedName.slice(selectedName.length - 4);
+      if (ext.charAt(0) !== ".") {
+        ext = ".all"
+      }
+      try{
+        const editor = await chooseEditor.chooseEditorByExt(editors, ext);
+        //console.log(456, editor)
+        openFile(filename, { editorName: editor.m_data.name })
+      }catch(err){
+        console.log(err)
+      }
+    }
+
+    openFileWithSubmenu.push({
+      name: "Choose...",
+      title: `Launches the choose dialog`,
+      fun: function () {
+        openFileWithEditorChoosenByExt();
+      },
+    })
 
     var menuNotSelectedSubmenu = [
       {
@@ -2034,7 +2071,7 @@ class FileSystemServices {
         $("#parent1").val(_name);
         updateFilesTable();
       } else {
-        if (!editing) openFile($(this).attr("data-tt-path"), {});
+        if (!editing) openFile($(this).attr("data-tt-path"), { editorName: $("#explorerSaveAsModal").attr("editorName") });
       }
     });
 
@@ -2200,7 +2237,29 @@ class FileSystemServices {
 
     var initialized = false;
 
+    async function openFileSuccessFunction(filename, data, editorName) {
+      let editor = null;
+      if (editorName !== undefined) {//a specific editor is requested       
+        editor = getEditorByName(editorName);              
+      } else {
+        //editor = chooseEditor.getEditorStoredChoice(getFileExtension(filename));//choose how to open governs
+        //if(!editor){
+          editor = await chooseEditor.getEditorByExt(editors, getFileExtension(filename));
+       // }        
+      }
+      $(window).trigger("fieOpened", [data, filename, getFileExtension(filename), editor.name]);
+      if (editor) {
+        editor.setData(data, filename, getFileExtension(filename), editorName);
+      } else { //If we get here, we use fs default setData() method
+        self.setData && self.setData(data, filename, getFileExtension(filename));
+      }
+      currentFilename = filename;
+      //editorName = editorName || null;
+      //$(window).trigger("fieOpened", [data, filename, getFileExtension(filename), editorName]);
+    }
+
     function openFile(filename, { editorName, options }) {
+      $(window).trigger("beforeOpen", [filename, getFileExtension(filename), editorName || null]);
       //console.log(2000, filename)
       options = options || { encoding: "utf8", flag: "r" };
       var _data = { name: filename, options: options };
@@ -2221,20 +2280,7 @@ class FileSystemServices {
             $("#imageLoader").hide();
         },
         success: function (data) {
-          let editor = null;
-          if (editorName !== undefined) {//a specific editor is requested
-            editor = getEditorByName(editorName);
-          } else {
-            editor = getEditorByExt(getFileExtension(filename));
-          }
-          if (editor) {
-            editor.setData(data, filename, getFileExtension(filename), editorName);
-          } else { //If we get here, we use fs default setData() method
-            self.setData && self.setData(data, filename, getFileExtension(filename));
-          }
-          currentFilename = filename;
-          editorName = editorName || null;
-          $(window).trigger("fieOpened", [data, filename, getFileExtension(filename), editorName]);
+          openFileSuccessFunction(filename, data, editorName);          
         },
         error: function (returnval) {
           console.log(returnval.responseJSON);
@@ -2260,7 +2306,7 @@ class FileSystemServices {
           data = self.getData(ext);
         }
         await self.saveAs(data);
-        $("#explorerSaveAsModal").attr("editorName", null);
+        //$("#explorerSaveAsModal").attr("editorName", null);
         $("#explorerSaveAsModal").modal("toggle");
       } catch {
         $("#name")[0].focus();
@@ -2350,7 +2396,7 @@ class FileSystemServices {
             } else {
               $("#dlg-password").val("");
               if (mongoFsLoginLogoutRegisterSeletor) {
-                mongoFsLoginLogoutRegisterSeletor.contextMenu(mongoFsLoginLogoutRegisterMenu2, {zIndex: 1000});
+                mongoFsLoginLogoutRegisterSeletor.contextMenu(mongoFsLoginLogoutRegisterMenu2, { zIndex: 2000 });
               }
               console.log(data.msg);
               $("#registerLoginModal").modal("toggle");
@@ -2425,7 +2471,7 @@ class FileSystemServices {
         "Register for or Login to Mongo File System"
       );
 
-      mongoFsLoginLogoutRegisterSeletor.contextMenu(mongoFsLoginLogoutRegisterMenu, {zIndex: 1000});
+      mongoFsLoginLogoutRegisterSeletor.contextMenu(mongoFsLoginLogoutRegisterMenu, { zIndex: 2000 });
 
     }
 
@@ -2745,14 +2791,24 @@ class FileSystemServices {
       });
     }
 
-    window.addEventListener("beforeunload", function (e) {
-      if (!options.persistSession) self.disconnectFs();
+
+    window.onbeforeunload = function (e) {
+      for (let i = 0; i < editors.length; ++i) {
+        if (editors[i].editor.currentFileModified()) {
+          e.preventDefault();
+          e.returnValue = '';
+          return "";
+        }
+      }
+      if (!options.persistSession) {
+        self.disconnectFs();
+      }
       breakdown();
-    });
+    };
 
 
     window.addEventListener('load', (event) => {
-      this.clearRefreshToken();
+      self.clearRefreshToken();
     });
 
     function refreshSession() {
@@ -2770,12 +2826,15 @@ class FileSystemServices {
               contentType: "application/json; charset=utf-8",
               dataType: "json",
               success: function (data) {
-                if (mongoFsLoginLogoutRegisterSeletor) {
+                /* if (mongoFsLoginLogoutRegisterSeletor) {
                   mongoFsLoginLogoutRegisterSeletor.attr(
                     "title",
                     "Logout from Mongo File System"
                   );
                   mongoFsLoginLogoutRegisterSeletor.contextMenu([]);
+                } */
+                if (mongoFsLoginLogoutRegisterSeletor) {
+                  mongoFsLoginLogoutRegisterSeletor.contextMenu(mongoFsLoginLogoutRegisterMenu2, { zIndex: 2000 });
                 }
                 configData = data.configData;
                 name = configData.rootDir;
@@ -2829,7 +2888,7 @@ class FileSystemServices {
     $("body").append(editorSelector);
     $("#myNotepad").css("height", $(window).height() * 0.71);
 
-    const options = {} 
+    const options = {}
     options.fs = this;
     options.editorName = "Text Editor";
     options.fileExtensions = ['.txt', null];
@@ -2879,7 +2938,7 @@ class Editor {
     const idsSaveAs = "notepadSaveAs";
     const idEditorLabel = "notepadModalLabel"; */
 
-    const {fs, editorName, fileExtensions, explorerDialogParentId, idsOpen, idsClose, idsSave, idsSaveAs, idEditorLabel} = obj;
+    const { fs, editorName, fileExtensions, explorerDialogParentId, idsOpen, idsClose, idsSave, idsSaveAs, idEditorLabel } = obj;
 
     const self = this;
     self.m_data = {};
@@ -2887,11 +2946,12 @@ class Editor {
     self.m_data.m_editor_opened = false;
     self.m_data.currentFilename = null;
     self.m_data.currentFileModified = false;
+
     self.m_data.currentFileSaving = false;
     self.m_data.name = editorName; //e.g. "Text Editor"
-    self.m_data.editorSelector = !explorerDialogParentId? $("body") : $(`#${explorerDialogParentId}`);
+    self.m_data.editorSelector = !explorerDialogParentId ? $("body") : $(`#${explorerDialogParentId}`);
 
-    
+
     const extensions = fileExtensions;
 
     let modifiedname = editorName.replaceAll(" ", "");
@@ -2931,10 +2991,13 @@ class Editor {
     $(window).bind("fileSaved", function (e, filename, editorName) {
       if (editorName === self.m_data.name) {
         self.m_data.currentFileSaving = false;
-        self.m_data.currentFileModified = false;
+        /* self.m_data.currentFileModified = false;
+        --self.m_data.m_fs.modifiedFiles; */
+        self.currentFileModified(false)
 
         $(`.${classes.save}`).attr("disabled", true);
         $(`.${classes.editorLabel}`).html(self.m_data.currentFilename + " - Mongo Notepad");
+        console.log("Saved")
       }
     });
 
@@ -2942,6 +3005,7 @@ class Editor {
       if (editorName === self.m_data.name) {
         self.m_data.currentFilename = filename;
       }
+      //$("#explorerSaveAsModal").attr("editorName", null);
     });
 
     async function doSave() {
@@ -2955,7 +3019,9 @@ class Editor {
           self.m_data.editorSelector.append($(el));
           await self.m_data.m_fs.save(self.m_data.currentFilename, self.getData());
           self.m_data.currentFileSaving = false;
-          self.m_data.currentFileModified = false;
+          /* self.m_data.currentFileModified = false;
+          --self.m_data.m_fs.modifiedFiles; */
+          self.currentFileModified(false);
           el = $("#imageLoader").detach();
           $("#explorerSaveAsModal").append($(el));
           $(window).trigger("afterEditorSave", [self.m_data.m_editor_name]);
@@ -2973,10 +3039,16 @@ class Editor {
       if (modified === undefined)
         return self.m_data.currentFileModified;
       self.m_data.currentFileModified = modified;
+      /* if(modified){
+        ++self.m_data.m_fs.modifiedFiles;
+      }else{
+        --self.m_data.m_fs.modifiedFiles;
+      } */
+
 
       if (modified) {
         let title = $(`.${classes.editorLabel}`).html();
-        if (title  && title.charAt(0) !== "*") {
+        if (title && title.charAt(0) !== "*") {
           $(`.${classes.editorLabel}`).html(`*${title}`);
         }
         if (self.currentFilename()) {
@@ -3020,13 +3092,7 @@ class Editor {
       self.m_data.m_fs.doSaveDlg();
     }
 
-    this.openFile = function () {
-      /* if (!self.m_data.m_editor_opened) {
-        return;
-      } */
-      self.setExplorerDlgParent(self.m_data.editorSelector);
-      self.m_data.m_fs.doExplorerDlg();
-    }   
+
 
 
     this.getExtensions = function () {
@@ -3036,6 +3102,30 @@ class Editor {
     this.setExplorerDlgParent = function (parent) {
       let el = $("#explorerSaveAsModal").detach();
       parent.append($(el));
+    }
+
+    this.resetEditor = function () {
+      self.closeEditor && self.closeEditor();
+      self.setExplorerDlgParent($("body"));
+      self.editorOpened(false);
+    }
+
+    this.editorClose = function (exitingFile = false) {
+      const fname = self.m_data.currentFilename || "Untitled";
+      if (self.currentFileModified()) {
+        const ans = confirm(`Do you want to save changes to ${fname}.`)
+        if (ans) {
+          if (!exitingFile || fname == "Untitled") {
+            saveAsFromClose = true;
+            $(`.${classes.saveAs}`).click();
+          } else {
+            $(`.${classes.save}`).click();
+            self.resetEditor();
+          }
+          return;
+        }
+      }
+      self.resetEditor();
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -3068,25 +3158,7 @@ class Editor {
     });
 
     $(`.${classes.close}`).click(function () {
-      const fname = self.m_data.currentFilename || "Untitled";
-      if (self.currentFileModified()) {
-        const ans = confirm(`Do you want to save changes to ${fname}.`)
-        if (ans) {
-          if (fname == "Untitled") {
-            saveAsFromClose = true;
-            $(`.${classes.saveAs}`).click();
-          } else {
-            $(`.${classes.save}`).click();
-            self.closeEditor && self.closeEditor();
-            self.setExplorerDlgParent($("body"));
-            self.editorOpened(false);
-          }
-          return;
-        }        
-      }
-      self.closeEditor && self.closeEditor();
-        self.setExplorerDlgParent($("body"));
-        self.editorOpened(false);
+      self.editorClose();
     });
 
 
@@ -3097,6 +3169,16 @@ class Editor {
     $("#notepadModalLabel").html("Untitled - Mongo Notepad");
     this.editorOpened(true);
     this.setExplorerDlgParent($("body"));
+  }
+
+  openFile() {
+    /* if (!self.m_data.m_editor_opened) {
+      return;
+    } */
+    this.setExplorerDlgParent(this.m_data.editorSelector);
+
+    $("#explorerSaveAsModal").attr("editorName", this.m_data.name);
+    this.m_data.m_fs.doExplorerDlg();
   }
 
   //subclass must re-implement these methods. 
@@ -3159,5 +3241,128 @@ class MongoNotepad extends Editor {
   }
 }
 
+
+class ChooseEditor {
+  constructor() {
+    const self = this;
+    const choiceStore = {};
+    let initialized = false;
+
+    //saveDlg.append($('<div id="chooseEditorModal" class="modal fade" role="dialog" data-backdrop="static" data-keyboard="false"> <div class="modal-dialog"> <!-- Modal content--> <div class="modal-content"> <div class="modal-header"><button type="button" class="close" data-dismiss="modal">&times;</button> <h4 id="dlg-title" style="text-align: center;" class="modal-title">How would you like to open this file?</h4> </div> <div class="modal-body"><br> <div class="container"></div> <div class="row"> <div class="col-sm-1"></div> <div class="col-sm-10"> <div class="row"> <form id="chooseEditorTable" style="width: 100%;"> </form> </div> <br> <div class="row"> <label><input id="alwaysUse" type="checkbox"><span id="alwaysUseLabel"></span></label> </div> <br> <div class="row"> <div class="col-sm-6"><input type="button" id="chooseEditorCancel" class="btn btn-primary" value="Cancel" style="width: 100%" ; /></div> <div class="col-sm-6"><input type="button" id="chooseEditorOk" class="btn btn-primary" value="Ok" style="width: 100%" ; /></div> </div> </div> </div> </div> </div> </div> </div>'));
+
+    function addToChooseEditorModal(editorName, checked = false) {
+      const valueName = editorName.replaceAll(" ", "-")
+      if (checked) {
+        $("#chooseEditorTable").append($('<label><input type="radio" name="ChooseEditor" value=' + valueName + ' checked>' + editorName + '</label><br>'));
+      } else {
+        $("#chooseEditorTable").append($('<label><input type="radio" name="ChooseEditor" value=' + valueName + '>' + editorName + '</label><br>'));
+      }
+
+    }
+
+    
+
+    function init(editors) {
+      for (let i = 0; i < editors.length; ++i) {
+        addToChooseEditorModal(editors[i].editor.m_data.name, i == 0 ? true : false)
+      }
+      initialized = true;
+    }
+
+    this.doChooseEditorByExt = function (editors, ext) {
+      return new Promise((resolve, reject) => {
+        $("#chooseEditorOk").click(function () {
+          delete choiceStore[ext];
+          var radioValue = $("input[name='ChooseEditor']:checked").val();
+          if (radioValue) {
+            radioValue = radioValue.replaceAll("-", " ")
+            for (let i = 0; i < editors.length; ++i) {
+              if (editors[i].name === radioValue) {
+                if ($("#alwaysUse")[0].checked) {
+                  choiceStore[ext] = editors[i].editor;
+                }
+                $("#chooseEditorModal").modal("hide");
+                return resolve(editors[i].editor);
+              }
+            }
+          }
+          $("#chooseEditorModal").modal("hide");
+          return reject(null);
+
+        });
+        $("#alwaysUseLabel").html(`Always use this app to open ${ext} fles`)
+        $("#chooseEditorModal").modal("show");
+      })
+
+    }
+
+    this.chooseEditorByExt = function (editors, ext) {
+      return new Promise(async (resolve, reject) => {
+        if (!initialized) {
+          init(editors)
+        }
+
+        try {
+          const edt = await self.doChooseEditorByExt(editors, ext);
+          resolve(edt)
+        } catch (err) {
+          reject(err)
+        }
+
+      })
+
+    }
+
+    this.getEditorStoredChoice = function (ext){
+      return choiceStore[ext] || null;
+    }
+
+    this.getEditorByExt = function (editors, ext) {
+      return new Promise(async (resolve, reject) => {
+        const storedEditor = choiceStore[ext] || null;
+        if (storedEditor) {
+          return resolve(storedEditor);
+        }
+        if (!initialized) {
+          init(editors)
+        }
+
+        let availableEditors = [];
+        for (let i = 0; i < editors.length; ++i) {
+          const editor = editors[i].editor;
+          const exts = editor.getExtensions();
+          for (let n = 0; n < exts.length; ++n) {
+            if (exts[n] == ext) {
+              availableEditors.push(editor);
+            }
+          }
+        }
+        if (availableEditors.length == 0) {
+          return resolve(null);
+        }
+        if (availableEditors.length == 1) {
+          return resolve(availableEditors[0]);
+        }
+
+        /* const storedEditor = choiceStore[ext];
+        //console.log("storedEditor: ", storedEditor)
+        if (storedEditor !== undefined) {
+          return resolve(storedEditor);
+        } */
+
+        try {
+          const edt = await self.doChooseEditorByExt(editors, ext);
+          resolve(edt)
+        } catch (err) {
+          reject(err)
+        }
+
+      })
+
+    }
+
+
+  }
+}
 
 //notepad.show()
