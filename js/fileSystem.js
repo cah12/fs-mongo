@@ -2184,13 +2184,13 @@ class FileSystemServices {
       if (rootData.isFile) {
         if (imageFileSrc)
           row = $(
-            '<tr draggable="true"><td><img src=' + imageFileSrc + '> ' +
+            '<tr draggable="true"><td style="border-width: 0px;"><img src=' + imageFileSrc + '> ' +
             rootData.displayName +
             "</td></tr>"
           );
         else
           row = $(
-            '<tr draggable="true"><td>' + rootData.displayName + '</td></tr>'
+            '<tr draggable="true"><td style="border-width: 0px;">' + rootData.displayName + '</td></tr>'
           );
         row.attr("data-tt-file", "file");
         row.attr("data-tt-ext", rootData.ext);
@@ -2198,13 +2198,13 @@ class FileSystemServices {
       } else {
         if (imageFolderSrc)
           row = $(
-            '<tr><td><img src=' + imageFolderSrc + '> ' +
+            '<tr><td style="border-width: 0px;"><img src=' + imageFolderSrc + '> ' +
             rootData.displayName +
             "</td></tr>"
           );
         else
           row = $(
-            '<tr><td>' + rootData.displayName + '</td></tr>'
+            '<tr><td style="border-width: 0px;">' + rootData.displayName + '</td></tr>'
           );
         row.attr("data-tt-file", "folder");
       }
