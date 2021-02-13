@@ -1000,7 +1000,7 @@ class FileSystemServices {
 
     saveDlg.append($('<div id="chooseEditorModal" class="modal fade" role="dialog" data-backdrop="static" data-keyboard="false"> <div class="modal-dialog"> <!-- Modal content--> <div class="modal-content"> <div class="modal-header"><button id="chooseEditorCancelX" type="button" class="close">&times;</button> <h4 id="dlg-title" style="text-align: center;" class="modal-title">How would you like to open this file?</h4> </div> <div class="modal-body"><br> <div class="container"></div> <div class="row"> <div class="col-sm-1"></div> <div class="col-sm-10"> <div class="row"> <form id="chooseEditorTable" style="width: 100%;"> </form> </div> <br> <div class="row"> <label><input id="alwaysUse" type="checkbox"><span id="alwaysUseLabel"></span></label> </div> <br> <div class="row"> <div class="col-sm-6"><input type="button" id="chooseEditorCancel" class="btn btn-primary" value="Cancel" style="width: 100%" ; /></div> <div class="col-sm-6"><input type="button" id="chooseEditorOk" class="btn btn-primary" value="Ok" style="width: 100%" ; /></div> </div> </div> </div> </div> </div> </div> </div>'));
 
-    
+
     /* var chooseEditorDlg = $(
       '<div id="chooseEditorModal" class="modal fade" role="dialog" data-backdrop="static" data-keyboard="false"> <div class="modal-dialog"> <!-- Modal content--> <div class="modal-content"> <div class="modal-header"><button type="button" class="close" data-dismiss="modal">&times;</button> <h4 id="dlg-title" style="text-align: center;" class="modal-title">How would you like to open this file?</h4> </div> <div class="modal-body"><br> <div class="container"></div> <div class="row"> <div class="col-sm-1"></div> <div class="col-sm-10"> <div class="row"> <table class="config-table" style="width: 100%;"> <tr class="config-table"> <th class="config-table">Propery</th> <th class="config-table">Value</th> </tr> <tr class="config-table"> <td class="config-table">Root directory name</td> <td class="config-table"><input id="rootDir" type="text" style="width: 100%;" value="root:" /></td> </tr> <tr class="config-table"> <td class="config-table">Separator</td> <td class="config-table"><input id="sep" type="text" style="width: 100%;" value="" /></td> </tr> <tr class="config-table"> <td class="config-table">Dialog background color</td> <td class="config-table"><input id="dialog-background-color" type="color" value="#ffffff" /></td> </tr> <tr class="config-table"> <td class="config-table">Input background color</td> <td class="config-table"><input id="input-background-color" type="color" value="#ffffff" /></td> </tr> <tr class="config-table"> <td class="config-table">Store new files with GridFs</td> <td class="config-table"><input id="gridfs-storage" type="checkbox" checked /></td> </tr> </table> </div> <br> <div class="row"> <div class="col-sm-4"><input type="button" id="config-cancel-button" class="btn btn-primary" value="Cancel" style="width: 100%" ; /></div> <div class="col-sm-4"><input type="button" id="config-restore-button" class="btn btn-primary" value="Restore Defaults" style="width: 100%" ; /></div> <div class="col-sm-4"><input type="button" id="config-ok-button" class="btn btn-primary" value="Ok" style="width: 100%" ; /></div> </div> </div> </div> </div> </div> </div> </div>'
     );
@@ -1015,7 +1015,7 @@ class FileSystemServices {
 
     var configData = null;
 
-    $("#chooseEditorCancel, #chooseEditorCancelX").click(function(){
+    $("#chooseEditorCancel, #chooseEditorCancelX").click(function () {
       $("#chooseEditorModal").modal("hide");
     });
 
@@ -1204,7 +1204,7 @@ class FileSystemServices {
               contentType: "application/json; charset=utf-8",
               dataType: "json",
               success: function (res) {
-                (async function (res) {
+                (async function () {
                   var parts = input.val().split("(");
                   var modifiedName = parts[0] + "(" + m + ")";
                   var ans = confirm(
@@ -1234,7 +1234,7 @@ class FileSystemServices {
                   contentType: "application/json; charset=utf-8",
                   dataType: "json",
                   success: function (data) {
-                    (async function (data) {
+                    (async function () {
                       input.remove();
                       editing = false;
                       changed = false;
@@ -1385,7 +1385,7 @@ class FileSystemServices {
               contentType: "application/json; charset=utf-8",
               dataType: "json",
               success: function (res) {
-                (async function (res) {
+                (async function () {
                   var parts = input.val().split("(");
                   var modifiedName = parts[0] + "(" + n + ")";
                   var ans = confirm(
@@ -1417,7 +1417,7 @@ class FileSystemServices {
             dataType: "json",
             success: function (data) {
               //refresh
-              (async function (data) {
+              (async function () {
                 //refresh
                 try {
                   await doInit(_parent);
@@ -1500,8 +1500,7 @@ class FileSystemServices {
             contentType: "application/json; charset=utf-8",
             dataType: "json",
             success: function (data) {
-              (async function (data) {
-                console.log(1236);
+              (async function () {
                 //refresh
                 try {
                   await doInit(_parent);
@@ -1523,7 +1522,7 @@ class FileSystemServices {
 
     let openFileWithSubmenu = [];
 
-   
+
     openFileWithSubmenu.push({
       name: "Choose...",
       title: `Launches the choose dialog`,
@@ -1534,11 +1533,11 @@ class FileSystemServices {
           if (ext.charAt(0) !== ".") {
             ext = ".all"
           }
-          try{
+          try {
             const editor = await chooseEditor.chooseEditorByExt(editors, ext);
             //console.log(456, editor)
             openFile(filename, { editorName: editor.m_data.name })
-          }catch(err){
+          } catch (err) {
             console.log(err)
           }
         })();
@@ -1670,7 +1669,7 @@ class FileSystemServices {
         contentType: "application/json; charset=utf-8",
         dataType: "json",
         success: function (res) {
-          (async function (res) {
+          (async function () {
             if (confirm(`File with the name "${name}" already exist. Do you want to replace it?`)) {
               $.ajax({
                 method: "POST",
@@ -2135,7 +2134,7 @@ class FileSystemServices {
           contentType: "application/json; charset=utf-8",
           dataType: "json",
           success: function (data) {
-            (async function (data) {
+            (async function () {
               if (originalNode.attr("data-tt-file") === "file") {
                 try {
                   await doInit(finalPath);
@@ -2168,7 +2167,7 @@ class FileSystemServices {
                   contentType: "application/json; charset=utf-8",
                   dataType: "json",
                   success: function (data) {
-                    (async function (data) {
+                    (async function () {
                       //console.log(457, m_data)
                       if (originalNode.attr("data-tt-file") === "file") {
                         try {
@@ -2258,15 +2257,12 @@ class FileSystemServices {
 
     var initialized = false;
 
-    async function openFileSuccessFunction(filename, data, editorName) {
+    /* async function openFileSuccessFunction(filename, data, editorName) {
       let editor = null;
       if (editorName !== undefined) {//a specific editor is requested       
-        editor = getEditorByName(editorName);              
+        editor = getEditorByName(editorName);
       } else {
-        //editor = chooseEditor.getEditorStoredChoice(getFileExtension(filename));//choose how to open governs
-        //if(!editor){
-          editor = await chooseEditor.getEditorByExt(editors, getFileExtension(filename));
-       // }        
+        editor = await chooseEditor.getEditorByExt(editors, getFileExtension(filename));
       }
       $(window).trigger("fieOpened", [data, filename, getFileExtension(filename), editor.name]);
       if (editor) {
@@ -2275,9 +2271,7 @@ class FileSystemServices {
         self.setData && self.setData(data, filename, getFileExtension(filename));
       }
       currentFilename = filename;
-      //editorName = editorName || null;
-      //$(window).trigger("fieOpened", [data, filename, getFileExtension(filename), editorName]);
-    }
+    } */
 
     function openFile(filename, { editorName, options }) {
       $(window).trigger("beforeOpen", [filename, getFileExtension(filename), editorName || null]);
@@ -2301,7 +2295,22 @@ class FileSystemServices {
             $("#imageLoader").hide();
         },
         success: function (data) {
-          openFileSuccessFunction(filename, data, editorName);          
+         // openFileSuccessFunction(filename, data, editorName);
+          (async function () {
+            let editor = null;
+            if (editorName !== undefined) {//a specific editor is requested       
+              editor = getEditorByName(editorName);
+            } else {
+              editor = await chooseEditor.getEditorByExt(editors, getFileExtension(filename));
+            }
+            $(window).trigger("fieOpened", [data, filename, getFileExtension(filename), editor.name]);
+            if (editor) {
+              editor.setData(data, filename, getFileExtension(filename), editorName);
+            } else { //If we get here, we use fs default setData() method
+              self.setData && self.setData(data, filename, getFileExtension(filename));
+            }
+            currentFilename = filename;
+          })()
         },
         error: function (returnval) {
           console.log(returnval.responseJSON);
@@ -3279,7 +3288,7 @@ class ChooseEditor {
 
     }
 
-    
+
 
     function init(editors) {
       for (let i = 0; i < editors.length; ++i) {
@@ -3332,7 +3341,7 @@ class ChooseEditor {
 
     }
 
-    this.getEditorStoredChoice = function (ext){
+    this.getEditorStoredChoice = function (ext) {
       return choiceStore[ext] || null;
     }
 
