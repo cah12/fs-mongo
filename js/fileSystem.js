@@ -1203,21 +1203,23 @@ class FileSystemServices {
               data: JSON.stringify(g_data),
               contentType: "application/json; charset=utf-8",
               dataType: "json",
-              success: async function (res) {
-                var parts = input.val().split("(");
-                var modifiedName = parts[0] + "(" + m + ")";
-                var ans = confirm(
-                  `The file "${input.val()}" already exist. Would you like to rename it to ${modifiedName}`
-                );
-                if (ans) {
-                  input.val(modifiedName);
-                  m++;
-                } else {
-                  _data.newName = _data.name;
-                  editing = false;
-                }
-                changed = false;
-                input[0].focus();
+              success: function (res) {
+                (async function (res) {
+                  var parts = input.val().split("(");
+                  var modifiedName = parts[0] + "(" + m + ")";
+                  var ans = confirm(
+                    `The file "${input.val()}" already exist. Would you like to rename it to ${modifiedName}`
+                  );
+                  if (ans) {
+                    input.val(modifiedName);
+                    m++;
+                  } else {
+                    _data.newName = _data.name;
+                    editing = false;
+                  }
+                  changed = false;
+                  input[0].focus();
+                })()
               },
               error: function (res) {
                 _data.newName = g_data.name;
@@ -1231,17 +1233,19 @@ class FileSystemServices {
                   data: JSON.stringify(_data),
                   contentType: "application/json; charset=utf-8",
                   dataType: "json",
-                  success: async function (data) {
-                    input.remove();
-                    editing = false;
-                    changed = false;
-                    selectedName = _data.newName;
-                    try {
-                      await doInit(_parent);
-                    } catch (err) {
-                      console.log("doInit failed 12")
-                      alert(`Initialisation failed. Please retry.`);
-                    }
+                  success: function (data) {
+                    (async function (data) {
+                      input.remove();
+                      editing = false;
+                      changed = false;
+                      selectedName = _data.newName;
+                      try {
+                        await doInit(_parent);
+                      } catch (err) {
+                        console.log("doInit failed 12")
+                        alert(`Initialisation failed. Please retry.`);
+                      }
+                    })()
                   },
                   error: function (returnval) {
                     input[0].focus();
@@ -1294,15 +1298,17 @@ class FileSystemServices {
         data: JSON.stringify(_data),
         contentType: "application/json; charset=utf-8",
         dataType: "json",
-        success: async function () {
-          try {
-            await doInit(_parent);
-            //Selected file/folder removed. Invalidate variable.
-            selectedName = null;
-          } catch {
-            console.log("doInit failed 1");
-            alert(`Initialisation failed. Please retry.`);
-          }
+        success: function () {
+          (async function () {
+            try {
+              await doInit(_parent);
+              //Selected file/folder removed. Invalidate variable.
+              selectedName = null;
+            } catch {
+              console.log("doInit failed 1");
+              alert(`Initialisation failed. Please retry.`);
+            }
+          })();
         },
         error: function (returnval) {
           console.log(returnval.responseJSON);
@@ -1378,21 +1384,23 @@ class FileSystemServices {
               data: JSON.stringify(m_data),
               contentType: "application/json; charset=utf-8",
               dataType: "json",
-              success: async function (res) {
-                var parts = input.val().split("(");
-                var modifiedName = parts[0] + "(" + n + ")";
-                var ans = confirm(
-                  `The file "${input.val()}" already exist. Would you like to rename it to ${modifiedName}`
-                );
-                if (ans) {
-                  input.val(modifiedName);
-                  n++;
-                } else {
-                  input.val("");
-                  editing = false;
-                }
-                changed = false;
-                input[0].focus();
+              success: function (res) {
+                (async function (res) {
+                  var parts = input.val().split("(");
+                  var modifiedName = parts[0] + "(" + n + ")";
+                  var ans = confirm(
+                    `The file "${input.val()}" already exist. Would you like to rename it to ${modifiedName}`
+                  );
+                  if (ans) {
+                    input.val(modifiedName);
+                    n++;
+                  } else {
+                    input.val("");
+                    editing = false;
+                  }
+                  changed = false;
+                  input[0].focus();
+                })();
               },
             });
           } catch (err) {
@@ -1407,15 +1415,18 @@ class FileSystemServices {
             data: JSON.stringify(m_data),
             contentType: "application/json; charset=utf-8",
             dataType: "json",
-            success: async function (data) {
+            success: function (data) {
               //refresh
-              try {
-                await doInit(_parent);
-                editing = false;
-              } catch {
-                console.log("doInit failed 2");
-                alert(`Initialisation failed. Please retry.`);
-              }
+              (async function (data) {
+                //refresh
+                try {
+                  await doInit(_parent);
+                  editing = false;
+                } catch {
+                  console.log("doInit failed 2");
+                  alert(`Initialisation failed. Please retry.`);
+                }
+              })();
             },
             error: function (returnval) {
               var parts = input.val().split("(");
@@ -1488,14 +1499,17 @@ class FileSystemServices {
             data: JSON.stringify(m_data),
             contentType: "application/json; charset=utf-8",
             dataType: "json",
-            success: async function (data) {
-              //refresh
-              try {
-                await doInit(_parent);
-              } catch {
-                console.log("doInit failed 3");
-                alert(`Initialisation failed. Please retry.`);
-              }
+            success: function (data) {
+              (async function (data) {
+                console.log(1236);
+                //refresh
+                try {
+                  await doInit(_parent);
+                } catch {
+                  console.log("doInit failed 3");
+                  alert(`Initialisation failed. Please retry.`);
+                }
+              })()
             },
             error: function (returnval) {
               //console.log(returnval.responseJSON);
@@ -1509,26 +1523,25 @@ class FileSystemServices {
 
     let openFileWithSubmenu = [];
 
-    async function openFileWithEditorChoosenByExt() {
-      const filename = selectedName.replace("f", "");
-      let ext = selectedName.slice(selectedName.length - 4);
-      if (ext.charAt(0) !== ".") {
-        ext = ".all"
-      }
-      try{
-        const editor = await chooseEditor.chooseEditorByExt(editors, ext);
-        //console.log(456, editor)
-        openFile(filename, { editorName: editor.m_data.name })
-      }catch(err){
-        console.log(err)
-      }
-    }
-
+   
     openFileWithSubmenu.push({
       name: "Choose...",
       title: `Launches the choose dialog`,
       fun: function () {
-        openFileWithEditorChoosenByExt();
+        (async function () {
+          const filename = selectedName.replace("f", "");
+          let ext = selectedName.slice(selectedName.length - 4);
+          if (ext.charAt(0) !== ".") {
+            ext = ".all"
+          }
+          try{
+            const editor = await chooseEditor.chooseEditorByExt(editors, ext);
+            //console.log(456, editor)
+            openFile(filename, { editorName: editor.m_data.name })
+          }catch(err){
+            console.log(err)
+          }
+        })();
       },
     })
 
@@ -1656,29 +1669,31 @@ class FileSystemServices {
         data: JSON.stringify({ name }),
         contentType: "application/json; charset=utf-8",
         dataType: "json",
-        success: async function (res) {
-          if (confirm(`File with the name "${name}" already exist. Do you want to replace it?`)) {
-            $.ajax({
-              method: "POST",
-              url: m_fsServerUrl + "/copyFile",
-              headers: {
-                Authorization: "Bearer " + inMemoryToken,
-              },
-              data: JSON.stringify(m_data),
-              contentType: "application/json; charset=utf-8",
-              dataType: "json",
-              success: async function (cpyName) {
-                nodeToCopy = null;
-                cb && cb(src)
-              },
-              error: function (err) {
-                console.log(err.responseJSON);
-                cb && cb(null)
-              },
-            });
-          }
+        success: function (res) {
+          (async function (res) {
+            if (confirm(`File with the name "${name}" already exist. Do you want to replace it?`)) {
+              $.ajax({
+                method: "POST",
+                url: m_fsServerUrl + "/copyFile",
+                headers: {
+                  Authorization: "Bearer " + inMemoryToken,
+                },
+                data: JSON.stringify(m_data),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: /* async  */function (cpyName) {
+                  nodeToCopy = null;
+                  cb && cb(src)
+                },
+                error: function (err) {
+                  console.log(err.responseJSON);
+                  cb && cb(null)
+                },
+              });
+            }
+          })()
         },
-        error: async function (res) {
+        error: /* async */ function (res) {
           $.ajax({
             method: "POST",
             url: m_fsServerUrl + "/copyFile",
@@ -1688,7 +1703,7 @@ class FileSystemServices {
             data: JSON.stringify(m_data),
             contentType: "application/json; charset=utf-8",
             dataType: "json",
-            success: async function (cpyName) {
+            success: /* async  */function (cpyName) {
               nodeToCopy = null;
               cb && cb(src);
             },
@@ -1718,14 +1733,16 @@ class FileSystemServices {
               data: JSON.stringify({ name: cpy }),
               contentType: "application/json; charset=utf-8",
               dataType: "json",
-              success: async function () {
-                try {
-                  await doInit($("#parent1").val());
-                  nodeCut = false;
-                } catch {
-                  console.log("doInit failed 5");
-                  alert(`Initialisation failed. Please retry.`);
-                }
+              success: function () {
+                (async function () {
+                  try {
+                    await doInit($("#parent1").val());
+                    nodeCut = false;
+                  } catch {
+                    console.log("doInit failed 5");
+                    alert(`Initialisation failed. Please retry.`);
+                  }
+                })();
               },
               error: function (returnval) {
                 console.log(returnval.responseJSON);
@@ -2117,22 +2134,24 @@ class FileSystemServices {
           data: JSON.stringify(m_data),
           contentType: "application/json; charset=utf-8",
           dataType: "json",
-          success: async function (data) {
-            if (originalNode.attr("data-tt-file") === "file") {
-              try {
-                await doInit(finalPath);
-              } catch {
-                console.log("doInit failed 7");
-                alert(`Initialisation failed. Please retry.`);
+          success: function (data) {
+            (async function (data) {
+              if (originalNode.attr("data-tt-file") === "file") {
+                try {
+                  await doInit(finalPath);
+                } catch {
+                  console.log("doInit failed 7");
+                  alert(`Initialisation failed. Please retry.`);
+                }
+              } else {
+                try {
+                  await doInit(newName);
+                } catch {
+                  console.log("doInit failed 8");
+                  alert(`Initialisation failed. Please retry.`);
+                }
               }
-            } else {
-              try {
-                await doInit(newName);
-              } catch {
-                console.log("doInit failed 8");
-                alert(`Initialisation failed. Please retry.`);
-              }
-            }
+            })();
           },
           error: function (err) {
             if (err.responseJSON.msg === "File with that name already exist") {
@@ -2148,23 +2167,25 @@ class FileSystemServices {
                   data: JSON.stringify(m_data),
                   contentType: "application/json; charset=utf-8",
                   dataType: "json",
-                  success: async function (data) {
-                    //console.log(457, m_data)
-                    if (originalNode.attr("data-tt-file") === "file") {
-                      try {
-                        await doInit(finalPath);
-                      } catch {
-                        console.log("doInit failed 9");
-                        alert(`Initialisation failed. Please retry.`);
+                  success: function (data) {
+                    (async function (data) {
+                      //console.log(457, m_data)
+                      if (originalNode.attr("data-tt-file") === "file") {
+                        try {
+                          await doInit(finalPath);
+                        } catch {
+                          console.log("doInit failed 9");
+                          alert(`Initialisation failed. Please retry.`);
+                        }
+                      } else {
+                        try {
+                          await doInit(newName);
+                        } catch {
+                          console.log("doInit failed 10");
+                          alert(`Initialisation failed. Please retry.`);
+                        }
                       }
-                    } else {
-                      try {
-                        await doInit(newName);
-                      } catch {
-                        console.log("doInit failed 10");
-                        alert(`Initialisation failed. Please retry.`);
-                      }
-                    }
+                    })();
                   },
                   error: function (err) {
                     //console.log(458, m_data)
@@ -3091,8 +3112,6 @@ class Editor {
       $("#explorerSaveAsModal").attr("editorName", self.m_data.name)
       self.m_data.m_fs.doSaveDlg();
     }
-
-
 
 
     this.getExtensions = function () {
