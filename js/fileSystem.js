@@ -2310,6 +2310,10 @@ class FileSystemServices {
               self.setData && self.setData(data, filename, getFileExtension(filename));
             }
             currentFilename = filename;
+            if($("#dlgTitle").html()==="File Explorer"){
+              $("#saveAsType").val(".all");
+            }
+            
           })()
         },
         error: function (returnval) {
@@ -2654,6 +2658,7 @@ class FileSystemServices {
             //console.log(222, m_name)
             $("#parent1").val(m_name);
 
+            
             resolve(true);
           },
           error: function (returnval) {
