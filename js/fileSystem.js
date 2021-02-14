@@ -2264,7 +2264,7 @@ class FileSystemServices {
       } else {
         editor = await chooseEditor.getEditorByExt(editors, getFileExtension(filename));
       }
-      $(window).trigger("fieOpened", [data, filename, getFileExtension(filename), editor.name]);
+      $(window).trigger("fileOpened", [data, filename, getFileExtension(filename), editor.name]);
       if (editor) {
         editor.setData(data, filename, getFileExtension(filename), editorName);
       } else { //If we get here, we use fs default setData() method
@@ -2303,7 +2303,7 @@ class FileSystemServices {
             } else {
               editor = await chooseEditor.getEditorByExt(editors, getFileExtension(filename));
             }
-            $(window).trigger("fieOpened", [data, filename, getFileExtension(filename), editor.name]);
+            $(window).trigger("fileOpened", [data, filename, getFileExtension(filename), editor.m_data.name]);
             if (editor) {
               editor.setData(data, filename, getFileExtension(filename), editorName);
             } else { //If we get here, we use fs default setData() method
@@ -3031,7 +3031,7 @@ class Editor {
       }
     });
 
-    $(window).bind("fieOpened", function (e, data, filename, ext, editorName) {
+    $(window).bind("fileOpened", function (e, data, filename, ext, editorName) {
       if (editorName === self.m_data.name) {
         self.m_data.currentFilename = filename;
       }
@@ -3214,9 +3214,9 @@ class Editor {
     console.error("getData (): Not re-implemented.");
   }
 
-  //subclass must re-implement
+  //subclass may re-implement
   setData(data, filename, ext, editorName) {
-    console.error("setData (): Not re-implemented.");
+    //console.error("setData (): Not re-implemented.");
   }
 
 }
