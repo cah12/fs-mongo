@@ -910,20 +910,27 @@ class FileSystemServices {
     ];
 
     this.doExplorerDlg = async function () {
-      if (!inMemoryToken) return alert("Not connected...");
-      $("#dlgTitle").html("File Explorer");
-      $("#inputFields").hide();
-      $("#explorerSaveAsModal").modal();
-      $("#saveAsType").val(".all");
-      await init();
+      if (await init()) {
+        if (!inMemoryToken) return alert("Not connected...");
+        $("#dlgTitle").html("File Explorer");
+        $("#inputFields").hide();
+        //$("#dlgCancelButton").hide();
+        $("#dlgSaveButton").hide();
+        $("#explorerSaveAsModal").modal();
+        $("#saveAsType").val(".all");
+        //await init();
+      }
     };
 
     this.doSaveDlg = async function () {
-      if (!inMemoryToken) return alert("Not connected...");
-      $("#dlgTitle").html("Save As");
-      $("#inputFields").show();
-      $("#explorerSaveAsModal").modal();
-      await init();
+      if (await init()) {
+        if (!inMemoryToken) return alert("Not connected...");
+        $("#dlgTitle").html("Save As");
+        $("#inputFields").show();
+        //$("#dlgCancelButton").show();
+        $("#dlgSaveButton").show();
+        $("#explorerSaveAsModal").modal();
+      }
     };
 
     function doLogout() {
@@ -989,7 +996,7 @@ class FileSystemServices {
     $("body").append(loginDlg);
 
     var saveDlg = $(
-      '<div id="explorerSaveAsModal" class="modal fade" role="dialog" data-backdrop="static" data-keyboard="false"> <div class="modal-dialog"> <!-- Modal content--> <div id="dlg-saveDlg" class="modal-content"> <div class="modal-header"><button id="saveDlgClose" type="button" class="close">&times;</button> <h4 id="dlgTitle" class="modal-title">Save As</h4> </div> <div class="modal-body"><br> <div class="container"></div> <div class="row"> <div class="col-sm-1"></div> <div class="col-sm-10"> <div class="row"> <div class="col-sm-2"> <label for="parent">Folder</label> </div> <div class="col-sm-7"> <input type="text" class="form-control inputClass" id="parent1" readonly> </div> <div class="col-sm-3"> <input type="button" class="form-control inputClass" id="configButton" value="Config"> </div> </div> <br> <div class="row"> <div class="col-sm-5"> <div style="overflow: scroll; height: 200px; border: solid; border-width: 1px;"> <table style="border-width: 0px; white-space: nowrap;" id="foldersTable"> <tbody></tbody> </table> </div> </div> <div id="menuElement" style="position: relative;" class="col-sm-7"> <div style="overflow: scroll; height: 200px; border: solid; border-width: 1px;"> <table style="border-width: 0px; white-space: nowrap;" id="filesTable"> <tbody></tbody> </table> </div> </div> </div><br> <div id="inputFields"> <div class="row"> <div class="col-sm-3"> <label for="name">File name</label> </div> <div class="col-sm-9"> <input type="text" class="form-control inputClass" id="name" name="name" value="new"> </div> </div> <br> <div class="row"> <div class="col-sm-3"> <label for="saveAsType">Save as type</label> </div> <div class="col-sm-9"> <select class="form-control inputClass" id="saveAsType"></select> </div> </div> <br> <button id="dlgSaveButton" style="width: 100%" class="btn btn-primary">Save</button> </div> </div> <div class="col-sm-1"></div> </div> </div> </div> </div> </div>'
+      '<div id="explorerSaveAsModal" class="modal fade" role="dialog" data-backdrop="static" data-keyboard="false"> <div class="modal-dialog"> <!-- Modal content--> <div id="dlg-saveDlg" class="modal-content"> <div class="modal-header"><button id="saveDlgClose" type="button" class="close">&times;</button> <h4 id="dlgTitle" class="modal-title">Save As</h4> </div> <div class="modal-body"><br> <div class="container"></div> <div class="row"> <div class="col-sm-1"></div> <div class="col-sm-10"> <div class="row"> <div class="col-sm-2"> <label for="parent">Folder</label> </div> <div class="col-sm-7"> <input type="text" class="form-control inputClass" id="parent1" readonly> </div> <div class="col-sm-3"> <input type="button" class="form-control inputClass" id="configButton" value="Config"> </div> </div> <br> <div class="row"> <div class="col-sm-5"> <div style="overflow: scroll; height: 200px; border: solid; border-width: 1px;"> <table style="border-width: 0px; white-space: nowrap;" id="foldersTable"> <tbody></tbody> </table> </div> </div> <div id="menuElement" style="position: relative;" class="col-sm-7"> <div style="overflow: scroll; height: 200px; border: solid; border-width: 1px;"> <table style="border-width: 0px; white-space: nowrap;" id="filesTable"> <tbody></tbody> </table> </div> </div> </div><br> <div id="inputFields"> <div class="row"> <div class="col-sm-3"> <label for="name">File name</label> </div> <div class="col-sm-9"> <input type="text" class="form-control inputClass" id="name" name="name" value="new"> </div> </div> <br> <div class="row"> <div class="col-sm-3"> <label for="saveAsType">Save as type</label> </div> <div class="col-sm-9"> <select class="form-control inputClass" id="saveAsType"></select> </div> </div> </div> <br><button id="dlgCancelButton" style="width: 20%" class="btn btn-primary pull-right">Cancel</button> <button id="dlgSaveButton" style="width: 79%" class="btn btn-primary">Save</button> </div> <div class="col-sm-1"></div> </div> </div> </div> </div> </div>'
     );
     $("body").append(saveDlg);
 
@@ -1075,7 +1082,7 @@ class FileSystemServices {
       e.preventDefault();
     });
 
-    $("#saveDlgClose").click(function () {
+    $("#saveDlgClose, #dlgCancelButton").click(function () {
       $("#explorerSaveAsModal").attr("editorName", null);
       saveDlg.modal("hide");
     })
@@ -2187,6 +2194,7 @@ class FileSystemServices {
                     })();
                   },
                   error: function (err) {
+
                     //console.log(458, m_data)
                     console.log(err.responseJSON);
                   },
@@ -2295,7 +2303,7 @@ class FileSystemServices {
             $("#imageLoader").hide();
         },
         success: function (data) {
-         // openFileSuccessFunction(filename, data, editorName);
+          // openFileSuccessFunction(filename, data, editorName);
           (async function () {
             let editor = null;
             if (editorName !== undefined) {//a specific editor is requested       
@@ -2310,13 +2318,18 @@ class FileSystemServices {
               self.setData && self.setData(data, filename, getFileExtension(filename));
             }
             currentFilename = filename;
-            if($("#dlgTitle").html()==="File Explorer"){
+            if ($("#dlgTitle").html() === "File Explorer") {
               $("#saveAsType").val(".all");
             }
-            
+
           })()
         },
         error: function (returnval) {
+          if (!self.getRefreshToken()) {
+            doLogout();
+            alert(`Please login.`);
+            return;
+          }
           console.log(returnval.responseJSON);
           alert("Unexpected error. Please retry.");
         },
@@ -2658,7 +2671,7 @@ class FileSystemServices {
             //console.log(222, m_name)
             $("#parent1").val(m_name);
 
-            
+
             resolve(true);
           },
           error: function (returnval) {
@@ -2671,9 +2684,16 @@ class FileSystemServices {
     async function init() {
       try {
         await doInit(configData.rootDir);
+        return true;
       } catch (err) {
         console.log("doInit failed 13");
+        if (!self.getRefreshToken()) {
+          doLogout();
+          alert(`Please login.`);
+          return false;
+        }
         alert(`Initialisation failed. Please retry.`);
+        return false;
       }
     };
 
