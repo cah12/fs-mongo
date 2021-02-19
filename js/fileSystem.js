@@ -2322,6 +2322,8 @@ class FileSystemServices {
               $("#saveAsType").val(".all");
             }
 
+           // $("#explorerSaveAsModal").modal("hide");
+
           })()
         },
         error: function (returnval) {
@@ -2354,14 +2356,14 @@ class FileSystemServices {
         }
         await self.saveAs(data);
         //$("#explorerSaveAsModal").attr("editorName", null);
-        $("#explorerSaveAsModal").modal("toggle");
+        $("#explorerSaveAsModal").modal("hide");
       } catch {
         $("#name")[0].focus();
       }
     });
 
     $(".config-close").click(() => {
-      $("#configModal").modal("toggle");
+      $("#configModal").modal("hide");
     });
 
     function doConfigDlg() {
@@ -2381,7 +2383,7 @@ class FileSystemServices {
     };
 
     $("#config-cancel-button, #configDlgCancelX").click(() => {
-      $("#configModal").modal("toggle");
+      $("#configModal").modal("hide");
     })
 
     $("#config-ok-button").click(async () => {
@@ -2403,7 +2405,7 @@ class FileSystemServices {
           alert(`Initialisation failed. Please retry.`);
         }
         if (!err) {
-          $("#configModal").modal("toggle");
+          $("#configModal").modal("hide");
         }
       });
     });
@@ -2450,7 +2452,7 @@ class FileSystemServices {
                 mongoFsLoginLogoutRegisterSeletor.contextMenu(mongoFsLoginLogoutRegisterMenu2, { zIndex: 2000 });
               }
               console.log(data.msg);
-              $("#registerLoginModal").modal("toggle");
+              $("#registerLoginModal").modal("hide");
             }
           }
         );
@@ -2477,7 +2479,7 @@ class FileSystemServices {
               $("#dlg-password").val("");
               $("#dlg-repeat-password").val("");
               $(window).trigger("registered", $("#dlg-username").val());
-              $("#registerLoginModal").modal("toggle");
+              $("#registerLoginModal").modal("hide");
             }
           }
         );
@@ -2503,7 +2505,7 @@ class FileSystemServices {
     });
 
     $("#dlg-cancel-button").on("click", () => {
-      $("#registerLoginModal").modal("toggle");
+      $("#registerLoginModal").modal("hide");
     });
 
     let mongoFsLoginLogoutRegisterSeletor = $(
