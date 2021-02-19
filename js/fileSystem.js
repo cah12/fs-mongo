@@ -2330,6 +2330,7 @@ class FileSystemServices {
           if (!self.getRefreshToken()) {
             doLogout();
             alert(`Please login.`);
+            location.reload();
             return;
           }
           console.log(returnval.responseJSON);
@@ -2696,6 +2697,7 @@ class FileSystemServices {
         if (!self.getRefreshToken()) {
           doLogout();
           alert(`Please login.`);
+          location.reload();
           return false;
         }
         alert(`Initialisation failed. Please retry.`);
