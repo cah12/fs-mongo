@@ -979,7 +979,13 @@ class FileSystemServices {
         name: "Save",
         title: "Saves current document to Mongo File System.",
         fun: editor.save
-      })
+      });
+      $( "body" ).keydown(function(e) {        
+        if(e.ctrlKey && (e.key==='S' || e.key==='s')){
+          e.preventDefault();
+          editor.save();
+        }        
+      });
     }
 
     this.addSaveAsMenuItem = function (editor) {
