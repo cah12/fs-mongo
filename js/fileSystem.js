@@ -946,6 +946,12 @@ class FileSystemServices {
         self.notepad.openEditor();
     }
 
+    $( "body" ).keydown(function(e) {        
+      if(e.ctrlKey && (e.key==='O' || e.key==='o')){
+        e.preventDefault();
+        self.doExplorerDlg()
+      }        
+    });
 
     let mongoFsLoginLogoutRegisterMenu2 = [
       {
