@@ -818,6 +818,8 @@ class FileSystemServices {
     options.accessTokenExpiry = options.accessTokenExpiry || 10; //initialize with 10 secs if undefined
     const fsServerUrl = options.fsServerUrl || "http://localhost:3000";
 
+    const fsServerUrl = options.fsServerUrl = '';
+
     let currentFilename = null;
 
     this.currentFilename = function (filename) {
