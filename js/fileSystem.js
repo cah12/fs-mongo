@@ -816,9 +816,9 @@ class FileSystemServices {
     let inMemoryToken = null;
     let options = _options || {};
     options.accessTokenExpiry = options.accessTokenExpiry || 10; //initialize with 10 secs if undefined
-    //const fsServerUrl = options.fsServerUrl || "http://localhost:3000";
+    const fsServerUrl = options.fsServerUrl || "http://localhost:3000";
 
-    const fsServerUrl = options.fsServerUrl = 'https://grapher-file-system.herokuapp.com';
+    //const fsServerUrl = options.fsServerUrl = 'https://grapher-file-system.herokuapp.com';
 
     let currentFilename = null;
 
