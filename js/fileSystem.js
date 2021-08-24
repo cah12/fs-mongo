@@ -820,6 +820,8 @@ class FileSystemServices {
 
     //const fsServerUrl = options.fsServerUrl = 'https://grapher-file-system.herokuapp.com';
 
+    const fsServerUrl = options.fsServerUrl = '';
+
     let currentFilename = null;
 
     this.currentFilename = function (filename) {
