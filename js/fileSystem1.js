@@ -1832,40 +1832,24 @@ class FileSystemServices {
 
     var pointIn = false;
 
-    $("#menuElement").on("mouseenter touchstart", () => {
+    $("#menuElement").mouseenter(() => {
       pointIn = true;
     });
 
-    $("#menuElement").on("mouseleave", () => {
+    $("#menuElement").mouseleave(() => {
       pointIn = false;
     });
 
-
-    let longtouch = false;
-
-    let touchTimer = null;
-
-    $("#explorerSaveAsModal").on("touchstart", function(){
-      longtouch = false;
-      clearTimeout(touchTimer)
-      touchTimer = setTimeout(function(){
-        longtouch = true;
-       }, 500)
-    });
-
     var menuActive = false;
-    $("#explorerSaveAsModal").on("mousedown touchend", function (e) {
-      //console.log(longtouch)
-      if (!longtouch && (e.button != 2) || !pointIn /* || !filesTableRowSelected */) {
+    $("#explorerSaveAsModal").mousedown(function (e) {
+      if (e.button != 2 || !pointIn /* || !filesTableRowSelected */) {
         //not right button
         if (menuActive) {
           $("#explorerSaveAsModal").contextMenu("destroy");
           menuActive = false;
         }
-       // pointIn = false;
         return;
       }
-      pointIn = false;
 
       if (currentSelectedRowSelector && !rigthClickOnSelectedRow) {
         currentSelectedRowSelector.toggleClass("selected"); //deselect
@@ -1927,7 +1911,7 @@ class FileSystemServices {
 
       var menu = filesTableRowSelected == true ? menuSelected : menuNotSelected;
       $("#explorerSaveAsModal").contextMenu(menu, {
-        triggerOn: "contextmenu",
+        triggerOn: "contextmenu touchstart",
       });
       rigthClickOnSelectedRow = false;
     });
@@ -2050,16 +2034,8 @@ class FileSystemServices {
       }
     }
 
-    $("#foldersTable tbody").on("touchstart", function(){
-      longtouch = false;
-      clearTimeout(touchTimer)
-      touchTimer = setTimeout(function(){
-        longtouch = true;
-       }, 500)
-    });
-
-    $("#foldersTable tbody").on("mousedown touchend", "tr", function (e) {
-      if (longtouch && e.button != 0) {
+    $("#foldersTable tbody").on("mousedown", "tr", function (e) {
+      if (e.button != 0) {
         return;
       }
       $(".selected").not(this).removeClass("selected");
@@ -2073,17 +2049,9 @@ class FileSystemServices {
       }
     });
 
-    $("#filesTable tbody").on("touchstart", function(){
-      longtouch = false;
-      clearTimeout(touchTimer)
-      touchTimer = setTimeout(function(){
-        longtouch = true;
-       }, 500)
-    });
-
     // Highlight selected row
-    $("#filesTable tbody").on("mousedown touchend", "tr", function (e) {
-      if (longtouch || (e.button == 2)) {
+    $("#filesTable tbody").on("mousedown", "tr", function (e) {
+      if (e.button == 2) {
         if (currentSelectedRowSelector) {
           if (currentSelectedRowSelector.attr("id") !== $(this).attr("id")) {
             //right click on a non-selected row
@@ -2100,7 +2068,7 @@ class FileSystemServices {
         }
         return;
       }
-      if ((!longtouch && e.button != 0) || editing) {
+      if (e.button != 0 || editing) {
         return;
       }
       selectedName = null;
