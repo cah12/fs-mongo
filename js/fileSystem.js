@@ -2051,7 +2051,7 @@ class FileSystemServices {
         //console.log(_name)
         if (children[i].isFile) {
           var selectedExtType = $("#saveAsType").val();
-          if (selectedExtType == ".all") {
+          if ((selectedExtType === ".all") || ($("#dlgTitle").html() === "File Explorer")) {
             addRow(children[i]);
             continue;
           } else {
