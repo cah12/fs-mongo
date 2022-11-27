@@ -1,5 +1,4 @@
-
-'use strict';
+"use strict";
 /*
  *contextMenu.js v 1.4.1
  *Author: Sudhanshu Yadav
@@ -7,7 +6,6 @@
  *Copyright (c) 2013-2015 Sudhanshu Yadav.
  *Dual licensed under the MIT and GPL licenses
  */
-;
 (function ($, window, document, undefined) {
   "use strict";
 
@@ -17,73 +15,79 @@
       single[0] = elm;
       return single;
     };
-  }());
+  })();
 
   $.fn.contextMenu = function (method, selector, option) {
-
     //parameter fix
     if (!methods[method]) {
       option = selector;
       selector = method;
-      method = 'popup';
+      method = "popup";
     }
     //need to check for array object
     else if (selector) {
-      if (!((selector instanceof Array) || (typeof selector === 'string') || (selector.nodeType) || (selector.jquery))) {
+      if (
+        !(
+          selector instanceof Array ||
+          typeof selector === "string" ||
+          selector.nodeType ||
+          selector.jquery
+        )
+      ) {
         option = selector;
         selector = null;
       }
     }
 
-    if ((selector instanceof Array) && (method != 'update')) {
-      method = 'menu';
+    if (selector instanceof Array && method != "update") {
+      method = "menu";
     }
 
     var myoptions = option;
-    if ($.inArray(method, ['menu', 'popup', 'close', 'destroy']) > -1) {
+    if ($.inArray(method, ["menu", "popup", "close", "destroy"]) > -1) {
       option = iMethods.optionOtimizer(method, option);
       this.each(function () {
-        var $this = $(this)
+        var $this = $(this);
         myoptions = $.extend({}, $.fn.contextMenu.defaults, option);
         if (!myoptions.baseTrigger) {
           myoptions.baseTrigger = $this;
         }
-        methods[method].call($this, selector, myoptions)
+        methods[method].call($this, selector, myoptions);
       });
     } else {
-      methods[method].call(this, selector, myoptions)
+      methods[method].call(this, selector, myoptions);
     }
     return this;
   };
   $.fn.contextMenu.defaults = {
-    triggerOn: 'click', //avaliable options are all event related mouse plus enter option
-    subMenuTriggerOn: 'hover click',
-    displayAround: 'cursor', // cursor or trigger
-    mouseClick: 'left',
+    triggerOn: "click", //avaliable options are all event related mouse plus enter option
+    subMenuTriggerOn: "hover click",
+    displayAround: "cursor", // cursor or trigger
+    mouseClick: "left",
     verAdjust: 0,
     horAdjust: 0,
-    top: 'auto',
-    left: 'auto',
+    top: "auto",
+    left: "auto",
     closeOther: true, //to close other already opened context menu
     containment: window,
     winEventClose: true,
-    position: 'auto', //allowed values are top, left, bottom and right
+    position: "auto", //allowed values are top, left, bottom and right
     closeOnClick: true, //close context menu on click/ trigger of any item in menu
 
     //callback
-    onOpen: function (data, event) { },
-    afterOpen: function (data, event) { },
-    onClose: function (data, event) { }
+    onOpen: function (data, event) {},
+    afterOpen: function (data, event) {},
+    onClose: function (data, event) {},
   };
 
   var methods = {
     menu: function (selector, option) {
       selector = iMethods.createMenuList(this, selector, option);
-      iMethods.contextMenuBind.call(this, selector, option, 'menu');
+      iMethods.contextMenuBind.call(this, selector, option, "menu");
     },
     popup: function (selector, option) {
-      $(selector).addClass('iw-contextMenu');
-      iMethods.contextMenuBind.call(this, selector, option, 'popup');
+      $(selector).addClass("iw-contextMenu");
+      iMethods.contextMenuBind.call(this, selector, option, "popup");
     },
     update: function (selector, option) {
       var self = this;
@@ -91,16 +95,15 @@
 
       this.each(function () {
         var trgr = $(this),
-          menuData = trgr.data('iw-menuData');
+          menuData = trgr.data("iw-menuData");
         //refresh if any new element is added
         if (!menuData) {
-          self.contextMenu('refresh');
-          menuData = trgr.data('iw-menuData');
+          self.contextMenu("refresh");
+          menuData = trgr.data("iw-menuData");
         }
 
         var menu = menuData.menu;
-        if (typeof selector === 'object') {
-
+        if (typeof selector === "object") {
           for (var i = 0; i < selector.length; i++) {
             var name = selector[i].name,
               disable = selector[i].disable,
@@ -109,38 +112,51 @@
               img = selector[i].img,
               title = selector[i].title,
               className = selector[i].className,
-              elm = menu.children('li').filter(function () {
-                return $(this).contents().filter(function () {
-                  return this.nodeType == 3;
-                }).text() == name;
+              elm = menu.children("li").filter(function () {
+                return (
+                  $(this)
+                    .contents()
+                    .filter(function () {
+                      return this.nodeType == 3;
+                    })
+                    .text() == name
+                );
               }),
               subMenu = selector[i].subMenu;
 
             //toggle disable if provided on update method
-            disable != undefined && (disable ? elm.addClass('iw-mDisable') : elm.removeClass('iw-mDisable'));
+            disable != undefined &&
+              (disable
+                ? elm.addClass("iw-mDisable")
+                : elm.removeClass("iw-mDisable"));
 
             //bind new function if provided
-            fun && elm.unbind('click.contextMenu').bind('click.contextMenu', fun);
+            fun &&
+              elm.unbind("click.contextMenu").bind("click.contextMenu", fun);
 
             //update title
-            title != undefined && elm.attr('title', title);
+            title != undefined && elm.attr("title", title);
 
             //update class name
-            className != undefined && elm.attr('class', className);
+            className != undefined && elm.attr("class", className);
 
-            var imgIcon = elm.find('.iw-mIcon');
+            var imgIcon = elm.find(".iw-mIcon");
             if (imgIcon.length) imgIcon.remove();
 
             //update image or icon
             if (img) {
-              elm.prepend('<img src="' + img + '" align="absmiddle" class="iw-mIcon" />');
+              elm.prepend(
+                '<img src="' + img + '" align="absmiddle" class="iw-mIcon" />'
+              );
             } else if (icon) {
-              elm.prepend('<span align="absmiddle" class="iw-mIcon ' + icon + '" />');
+              elm.prepend(
+                '<span align="absmiddle" class="iw-mIcon ' + icon + '" />'
+              );
             }
 
             //to change submenus
             if (subMenu) {
-              elm.contextMenu('update', subMenu);
+              elm.contextMenu("update", subMenu);
             }
           }
         }
@@ -150,38 +166,42 @@
         //bind event again if trigger option has changed.
         var triggerOn = option.triggerOn;
         if (triggerOn) {
-          trgr.unbind('.contextMenu');
+          trgr.unbind(".contextMenu");
 
           //add contextMenu identifier on all events
           triggerOn = triggerOn.split(" ");
           var events = [];
           for (var i = 0, ln = triggerOn.length; i < ln; i++) {
-            events.push(triggerOn[i] + '.contextMenu')
+            events.push(triggerOn[i] + ".contextMenu");
           }
 
           //to bind event
-          trgr.bind(events.join(' '), iMethods.eventHandler);
+          trgr.bind(events.join(" "), iMethods.eventHandler);
         }
 
         //set menu data back to trigger element
         menuData.option = $.extend({}, menuData.option, option);
-        trgr.data('iw-menuData', menuData);
+        trgr.data("iw-menuData", menuData);
       });
     },
     refresh: function () {
       var menuData = this.filter(function () {
-        return !!$(this).data('iw-menuData');
-      }).data('iw-menuData'),
+          return !!$(this).data("iw-menuData");
+        }).data("iw-menuData"),
         newElm = this.filter(function () {
-          return !$(this).data('iw-menuData');
+          return !$(this).data("iw-menuData");
         });
-      //to change basetrigger on refresh  
+      //to change basetrigger on refresh
       menuData.option.baseTrigger = this;
-      iMethods.contextMenuBind.call(newElm, menuData.menuSelector, menuData.option);
+      iMethods.contextMenuBind.call(
+        newElm,
+        menuData.menuSelector,
+        menuData.option
+      );
     },
     open: function (sel, data) {
       data = data || {};
-      var e = data.event || $.Event('click');
+      var e = data.event || $.Event("click");
       if (data.top) e.clientY = data.top;
       if (data.left) e.clientX = data.left;
       this.each(function () {
@@ -190,14 +210,14 @@
     },
     //to force context menu to close
     close: function () {
-      var menuData = this.data('iw-menuData');
+      var menuData = this.data("iw-menuData");
       if (menuData) {
         iMethods.closeContextMenu(menuData.option, this, menuData.menu, null);
       }
     },
     //to get value of a key
     value: function (key) {
-      var menuData = this.data('iw-menuData');
+      var menuData = this.data("iw-menuData");
       if (menuData[key]) {
         return menuData[key];
       } else if (menuData.option) {
@@ -207,35 +227,39 @@
     },
     destroy: function () {
       var trgr = this,
-        menuId = trgr.data('iw-menuData').menuId,
-        menu = $('.iw-contextMenu[menuId=' + menuId + ']'),
-        menuData = menu.data('iw-menuData');
+        menuId = trgr.data("iw-menuData").menuId,
+        menu = $(".iw-contextMenu[menuId=" + menuId + "]"),
+        menuData = menu.data("iw-menuData");
 
       //Handle the situation of dynamically added element.
       if (!menuData) return;
 
-
       if (menuData.noTrigger == 1) {
-        if (menu.hasClass('iw-created')) {
+        if (menu.hasClass("iw-created")) {
           menu.remove();
         } else {
-          menu.removeClass('iw-contextMenu ' + menuId)
-            .removeAttr('menuId').removeData('iw-menuData');
+          menu
+            .removeClass("iw-contextMenu " + menuId)
+            .removeAttr("menuId")
+            .removeData("iw-menuData");
           //to destroy submenus
-          menu.find('li.iw-mTrigger').contextMenu('destroy');
+          menu.find("li.iw-mTrigger").contextMenu("destroy");
         }
       } else {
         menuData.noTrigger--;
-        menu.data('iw-menuData', menuData);
+        menu.data("iw-menuData", menuData);
       }
-      trgr.unbind('.contextMenu').removeClass('iw-mTrigger').removeData('iw-menuData');
-    }
+      trgr
+        .unbind(".contextMenu")
+        .removeClass("iw-mTrigger")
+        .removeData("iw-menuData");
+    },
   };
   var iMethods = {
     contextMenuBind: function (selector, option, method) {
       var trigger = this,
         menu = $(selector),
-        menuData = menu.data('iw-menuData');
+        menuData = menu.data("iw-menuData");
 
       //fallback
       if (menu.length == 0) {
@@ -245,103 +269,103 @@
         }
       }
 
-      if (method == 'menu') {
+      if (method == "menu") {
         iMethods.menuHover(menu);
       }
       //get base trigger
       var baseTrigger = option.baseTrigger;
 
-
       if (!menuData) {
         var menuId;
-        if (!baseTrigger.data('iw-menuData')) {
+        if (!baseTrigger.data("iw-menuData")) {
           menuId = Math.ceil(Math.random() * 100000);
-          baseTrigger.data('iw-menuData', {
-            'menuId': menuId
+          baseTrigger.data("iw-menuData", {
+            menuId: menuId,
           });
         } else {
-          menuId = baseTrigger.data('iw-menuData').menuId;
+          menuId = baseTrigger.data("iw-menuData").menuId;
         }
         //create clone menu to calculate exact height and width.
         var cloneMenu = menu.clone();
-        cloneMenu.appendTo('body');
+        cloneMenu.appendTo("body");
 
         menuData = {
-          'menuId': menuId,
-          'menuWidth': cloneMenu.outerWidth(true),
-          'menuHeight': cloneMenu.outerHeight(true),
-          'noTrigger': 1,
-          'trigger': trigger
+          menuId: menuId,
+          menuWidth: cloneMenu.outerWidth(true),
+          menuHeight: cloneMenu.outerHeight(true),
+          noTrigger: 1,
+          trigger: trigger,
         };
 
-
         //to set data on selector
-        menu.data('iw-menuData', menuData).attr('menuId', menuId);
+        menu.data("iw-menuData", menuData).attr("menuId", menuId);
         //remove clone menu
         cloneMenu.remove();
       } else {
         menuData.noTrigger++;
-        menu.data('iw-menuData', menuData);
+        menu.data("iw-menuData", menuData);
       }
 
       //to set data on trigger
-      trigger.addClass('iw-mTrigger').data('iw-menuData', {
-        'menuId': menuData.menuId,
-        'option': option,
-        'menu': menu,
-        'menuSelector': selector,
-        'method': method
+      trigger.addClass("iw-mTrigger").data("iw-menuData", {
+        menuId: menuData.menuId,
+        option: option,
+        menu: menu,
+        menuSelector: selector,
+        method: method,
       });
 
       //hover fix
       var triggerOn = option.triggerOn;
-      if (triggerOn.indexOf('hover') != -1) {
-        triggerOn = triggerOn.replace('hover', 'mouseenter');
+      if (triggerOn.indexOf("hover") != -1) {
+        triggerOn = triggerOn.replace("hover", "mouseenter");
         //hover out if display is of context menu is on hover
         if (baseTrigger.index(trigger) != -1) {
-          baseTrigger.add(menu).bind('mouseleave.contextMenu', function (e) {
-            if ($(e.relatedTarget).closest('.iw-contextMenu').length == 0) {
-              $('.iw-contextMenu[menuId="' + menuData.menuId + '"]').fadeOut(100);
+          baseTrigger.add(menu).bind("mouseleave.contextMenu", function (e) {
+            if ($(e.relatedTarget).closest(".iw-contextMenu").length == 0) {
+              $('.iw-contextMenu[menuId="' + menuData.menuId + '"]').fadeOut(
+                100
+              );
             }
           });
         }
-
       }
 
-      trigger.delegate('input,a,.needs-click', 'click', function (e) {
-        e.stopImmediatePropagation()
+      trigger.delegate("input,a,.needs-click", "click", function (e) {
+        e.stopImmediatePropagation();
       });
 
       //add contextMenu identifier on all events
-      triggerOn = triggerOn.split(' ');
+      triggerOn = triggerOn.split(" ");
       var events = [];
       for (var i = 0, ln = triggerOn.length; i < ln; i++) {
-        events.push(triggerOn[i] + '.contextMenu')
+        events.push(triggerOn[i] + ".contextMenu");
       }
 
       //to bind event
-      trigger.bind(events.join(' '), iMethods.eventHandler);
+      trigger.bind(events.join(" "), iMethods.eventHandler);
 
       //to stop bubbling in menu
-      menu.bind('click mouseenter', function (e) {
+      menu.bind("click mouseenter", function (e) {
         e.stopPropagation();
       });
 
-      menu.delegate('li', 'click', function (e) {
-        if (option.closeOnClick && !$.single(this).hasClass('iw-has-submenu')) iMethods.closeContextMenu(option, trigger, menu, e);
+      menu.delegate("li", "click", function (e) {
+        if (option.closeOnClick && !$.single(this).hasClass("iw-has-submenu"))
+          iMethods.closeContextMenu(option, trigger, menu, e);
       });
     },
     eventHandler: function (e) {
       e.preventDefault();
       var trigger = $(this),
-        trgrData = trigger.data('iw-menuData'),
+        trgrData = trigger.data("iw-menuData"),
         menu = trgrData.menu,
-        menuData = menu.data('iw-menuData'),
+        menuData = menu.data("iw-menuData"),
         option = trgrData.option,
         cntnmnt = option.containment,
         clbckData = {
           trigger: trigger,
-          menu: menu
+          menu: menu,
         },
         //check conditions
         cntWin = cntnmnt == window,
@@ -349,15 +373,14 @@
 
       //to close previous open menu.
       if (!btChck && option.closeOther) {
-        $('.iw-contextMenu').css('display', 'none');
+        $(".iw-contextMenu").css("display", "none");
       }
 
       //to reset already selected menu item
-      menu.find('.iw-mSelected').removeClass('iw-mSelected');
+      menu.find(".iw-mSelected").removeClass("iw-mSelected");
 
       //call open callback
       option.onOpen.call(this, clbckData, e);
-
 
       var cObj = $(cntnmnt),
         cHeight = cObj.innerHeight(),
@@ -366,35 +389,34 @@
         cLeft = 0,
         menuHeight = menuData.menuHeight,
         menuWidth = menuData.menuWidth,
-        va, ha,
+        va,
+        ha,
         left = 0,
         top = 0,
         bottomMenu,
         rightMenu,
-        verAdjust = va = parseInt(option.verAdjust),
-        horAdjust = ha = parseInt(option.horAdjust);
+        verAdjust = (va = parseInt(option.verAdjust)),
+        horAdjust = (ha = parseInt(option.horAdjust));
 
       if (!cntWin) {
         cTop = cObj.offset().top;
         cLeft = cObj.offset().left;
 
         //to add relative position if no position is defined on containment
-        if (cObj.css('position') == 'static') {
-          cObj.css('position', 'relative');
+        if (cObj.css("position") == "static") {
+          cObj.css("position", "relative");
         }
-
       }
 
-
-      if (option.displayAround == 'cursor') {
+      if (option.displayAround == "cursor") {
         left = cntWin ? e.clientX : e.clientX + $(window).scrollLeft() - cLeft;
         top = cntWin ? e.clientY : e.clientY + $(window).scrollTop() - cTop;
         bottomMenu = top + menuHeight;
         rightMenu = left + menuWidth;
         //max height and width of context menu
         if (bottomMenu > cHeight) {
-          if ((top - menuHeight) < 0) {
-            if ((bottomMenu - cHeight) < (menuHeight - top)) {
+          if (top - menuHeight < 0) {
+            if (bottomMenu - cHeight < menuHeight - top) {
               top = cHeight - menuHeight;
               va = -1 * va;
             } else {
@@ -407,8 +429,8 @@
           }
         }
         if (rightMenu > cWidth) {
-          if ((left - menuWidth) < 0) {
-            if ((rightMenu - cWidth) < (menuWidth - left)) {
+          if (left - menuWidth < 0) {
+            if (rightMenu - cWidth < menuWidth - left) {
               left = cWidth - menuWidth;
               ha = -1 * ha;
             } else {
@@ -420,23 +442,26 @@
             ha = -1 * ha;
           }
         }
-      } else if (option.displayAround == 'trigger') {
+      } else if (option.displayAround == "trigger") {
         var triggerHeight = trigger.outerHeight(true),
           triggerWidth = trigger.outerWidth(true),
-          triggerLeft = cntWin ? trigger.offset().left - cObj.scrollLeft() : trigger.offset().left - cLeft,
-          triggerTop = cntWin ? trigger.offset().top - cObj.scrollTop() : trigger.offset().top - cTop,
+          triggerLeft = cntWin
+            ? trigger.offset().left - cObj.scrollLeft()
+            : trigger.offset().left - cLeft,
+          triggerTop = cntWin
+            ? trigger.offset().top - cObj.scrollTop()
+            : trigger.offset().top - cTop,
           leftShift = triggerWidth;
 
         left = triggerLeft + triggerWidth;
         top = triggerTop;
 
-
         bottomMenu = top + menuHeight;
         rightMenu = left + menuWidth;
         //max height and width of context menu
         if (bottomMenu > cHeight) {
-          if ((top - menuHeight) < 0) {
-            if ((bottomMenu - cHeight) < (menuHeight - top)) {
+          if (top - menuHeight < 0) {
+            if (bottomMenu - cHeight < menuHeight - top) {
               top = cHeight - menuHeight;
               va = -1 * va;
             } else {
@@ -449,8 +474,8 @@
           }
         }
         if (rightMenu > cWidth) {
-          if ((left - menuWidth) < 0) {
-            if ((rightMenu - cWidth) < (menuWidth - left)) {
+          if (left - menuWidth < 0) {
+            if (rightMenu - cWidth < menuWidth - left) {
               left = cWidth - menuWidth;
               ha = -1 * ha;
               leftShift = -triggerWidth;
@@ -466,18 +491,18 @@
           }
         }
         //test end
-        if (option.position == 'top') {
+        if (option.position == "top") {
           top = triggerTop - menuHeight;
           va = verAdjust;
           left = left - leftShift;
-        } else if (option.position == 'left') {
+        } else if (option.position == "left") {
           left = triggerLeft - menuWidth;
           ha = horAdjust;
-        } else if (option.position == 'bottom') {
+        } else if (option.position == "bottom") {
           top = triggerTop + triggerHeight;
           va = verAdjust;
           left = left - leftShift;
-        } else if (option.position == 'right') {
+        } else if (option.position == "right") {
           left = triggerLeft + triggerWidth;
           ha = horAdjust;
         }
@@ -485,18 +510,17 @@
 
       //applying css property
       var cssObj = {
-        'position': (cntWin || btChck) ? 'fixed' : 'absolute',
-        'display': 'inline-block',
-        'height': '',
-        'width': ''
+        position: cntWin || btChck ? "fixed" : "absolute",
+        display: "inline-block",
+        height: "",
+        width: "",
       };
 
-
       //to get position from offset parent
-      if (option.left != 'auto') {
+      if (option.left != "auto") {
         left = iMethods.getPxSize(option.left, cWidth);
       }
-      if (option.top != 'auto') {
+      if (option.top != "auto") {
         top = iMethods.getPxSize(option.top, cHeight);
       }
       if (!cntWin) {
@@ -509,32 +533,34 @@
           top = top - (cTop - oParPos.top);
         }
       }
-      cssObj.left = left + ha + 'px';
-      cssObj.top = top + va + 'px';
+      cssObj.left = left + ha + "px";
+      cssObj.top = top + va + "px";
 
       menu.css(cssObj);
 
       //to call after open call back
       option.afterOpen.call(this, clbckData, e);
 
-
       //to add current menu class
-      if (trigger.closest('.iw-contextMenu').length == 0) {
-        $('.iw-curMenu').removeClass('iw-curMenu');
-        menu.addClass('iw-curMenu');
+      if (trigger.closest(".iw-contextMenu").length == 0) {
+        $(".iw-curMenu").removeClass("iw-curMenu");
+        menu.addClass("iw-curMenu");
       }
-
 
       var dataParm = {
         trigger: trigger,
         menu: menu,
         option: option,
-        method: trgrData.method
+        method: trgrData.method,
       };
-      $('html').unbind('click', iMethods.clickEvent).click(dataParm, iMethods.clickEvent);
-      $(document).unbind('keydown', iMethods.keyEvent).keydown(dataParm, iMethods.keyEvent);
+      $("html")
+        .unbind("click", iMethods.clickEvent)
+        .click(dataParm, iMethods.clickEvent);
+      $(document)
+        .unbind("keydown", iMethods.keyEvent)
+        .keydown(dataParm, iMethods.keyEvent);
       if (option.winEventClose) {
-        $(window).bind('scroll resize', dataParm, iMethods.scrollEvent);
+        $(window).bind("scroll resize", dataParm, iMethods.scrollEvent);
       }
     },
 
@@ -545,8 +571,16 @@
     clickEvent: function (e) {
       var button = e.data.trigger.get(0);
 
-      if ((button !== e.target) && ($(e.target).closest('.iw-contextMenu').length == 0)) {
-        iMethods.closeContextMenu(e.data.option, e.data.trigger, e.data.menu, e);
+      if (
+        button !== e.target &&
+        $(e.target).closest(".iw-contextMenu").length == 0
+      ) {
+        iMethods.closeContextMenu(
+          e.data.option,
+          e.data.trigger,
+          e.data.menu,
+          e
+        );
       }
     },
     keyEvent: function (e) {
@@ -558,50 +592,49 @@
       if (keyCode == 27) {
         iMethods.closeContextMenu(option, e.data.trigger, menu, e);
       }
-      if (e.data.method == 'menu') {
-        var curMenu = $('.iw-curMenu'),
-          optList = curMenu.children('li:not(.iw-mDisable)'),
-          selected = optList.filter('.iw-mSelected'),
+      if (e.data.method == "menu") {
+        var curMenu = $(".iw-curMenu"),
+          optList = curMenu.children("li:not(.iw-mDisable)"),
+          selected = optList.filter(".iw-mSelected"),
           index = optList.index(selected),
           focusOn = function (elm) {
             iMethods.selectMenu(curMenu, elm);
-            var menuData = elm.data('iw-menuData');
+            var menuData = elm.data("iw-menuData");
             if (menuData) {
               iMethods.eventHandler.call(elm[0], e);
-
             }
           },
           first = function () {
-            focusOn(optList.filter(':first'));
+            focusOn(optList.filter(":first"));
           },
           last = function () {
-            focusOn(optList.filter(':last'));
+            focusOn(optList.filter(":last"));
           },
           next = function () {
-            focusOn(optList.filter(':eq(' + (index + 1) + ')'));
+            focusOn(optList.filter(":eq(" + (index + 1) + ")"));
           },
           prev = function () {
-            focusOn(optList.filter(':eq(' + (index - 1) + ')'));
+            focusOn(optList.filter(":eq(" + (index - 1) + ")"));
           },
           subMenu = function () {
-            var menuData = selected.data('iw-menuData');
+            var menuData = selected.data("iw-menuData");
             if (menuData) {
               iMethods.eventHandler.call(selected[0], e);
               var selector = menuData.menu;
-              selector.addClass('iw-curMenu');
-              curMenu.removeClass('iw-curMenu');
+              selector.addClass("iw-curMenu");
+              curMenu.removeClass("iw-curMenu");
               curMenu = selector;
-              optList = curMenu.children('li:not(.iw-mDisable)');
-              selected = optList.filter('.iw-mSelected');
+              optList = curMenu.children("li:not(.iw-mDisable)");
+              selected = optList.filter(".iw-mSelected");
               first();
             }
           },
           parMenu = function () {
-            var selector = curMenu.data('iw-menuData').trigger;
-            var parMenu = selector.closest('.iw-contextMenu');
+            var selector = curMenu.data("iw-menuData").trigger;
+            var parMenu = selector.closest(".iw-contextMenu");
             if (parMenu.length != 0) {
-              curMenu.removeClass('iw-curMenu').css('display', 'none');
-              parMenu.addClass('iw-curMenu');
+              curMenu.removeClass("iw-curMenu").css("display", "none");
+              parMenu.addClass("iw-curMenu");
             }
           };
         switch (keyCode) {
@@ -609,10 +642,12 @@
             selected.click();
             break;
           case 40:
-            (index == optList.length - 1 || selected.length == 0) ? first() : next();
+            index == optList.length - 1 || selected.length == 0
+              ? first()
+              : next();
             break;
           case 38:
-            (index == 0 || selected.length == 0) ? last() : prev();
+            index == 0 || selected.length == 0 ? last() : prev();
             break;
           case 33:
             first();
@@ -630,92 +665,123 @@
       }
     },
     closeContextMenu: function (option, trigger, menu, e) {
-
       //unbind all events from top DOM
-      $(document).unbind('keydown', iMethods.keyEvent);
-      $('html').unbind('click', iMethods.clickEvent);
-      $(window).unbind('scroll resize', iMethods.scrollEvent);
-      $('.iw-contextMenu').css('display', 'none');
+      $(document).unbind("keydown", iMethods.keyEvent);
+      $("html").unbind("click", iMethods.clickEvent);
+      $(window).unbind("scroll resize", iMethods.scrollEvent);
+      $(".iw-contextMenu").css("display", "none");
       $(document).focus();
 
       //call close function
-      option.onClose.call(this, {
-        trigger: trigger,
-        menu: menu
-      }, e);
+      option.onClose.call(
+        this,
+        {
+          trigger: trigger,
+          menu: menu,
+        },
+        e
+      );
     },
     getPxSize: function (size, of) {
       if (!isNaN(size)) {
         return size;
       }
-      if (size.indexOf('%') != -1) {
-        return parseInt(size) * of / 100;
+      if (size.indexOf("%") != -1) {
+        return (parseInt(size) * of) / 100;
       } else {
         return parseInt(size);
       }
     },
     selectMenu: function (menu, elm) {
       //to select the list
-      var selected = menu.find('li.iw-mSelected'),
-        submenu = selected.find('.iw-contextMenu');
-      if ((submenu.length != 0) && (selected[0] != elm[0])) {
+      var selected = menu.find("li.iw-mSelected"),
+        submenu = selected.find(".iw-contextMenu");
+      if (submenu.length != 0 && selected[0] != elm[0]) {
         submenu.fadeOut(100);
       }
-      selected.removeClass('iw-mSelected');
-      elm.addClass('iw-mSelected');
+      selected.removeClass("iw-mSelected");
+      elm.addClass("iw-mSelected");
     },
     menuHover: function (menu) {
       var lastEventTime = Date.now();
-      menu.children('li').bind('mouseenter.contextMenu click.contextMenu', function (e) {
-        //to make curmenu
-        $('.iw-curMenu').removeClass('iw-curMenu');
-        menu.addClass('iw-curMenu');
-        iMethods.selectMenu(menu, $(this));
-      });
+      menu
+        .children("li")
+        .bind("mouseenter.contextMenu click.contextMenu", function (e) {
+          //to make curmenu
+          $(".iw-curMenu").removeClass("iw-curMenu");
+          menu.addClass("iw-curMenu");
+          iMethods.selectMenu(menu, $(this));
+        });
     },
     createMenuList: function (trgr, selector, option) {
       var baseTrigger = option.baseTrigger,
         randomNum = Math.floor(Math.random() * 10000);
-      if ((typeof selector == 'object') && (!selector.nodeType) && (!selector.jquery)) {
-        var menuList = $('<ul class="iw-contextMenu iw-created iw-cm-menu" id="iw-contextMenu' + randomNum + '"></ul>');
+      if (
+        typeof selector == "object" &&
+        !selector.nodeType &&
+        !selector.jquery
+      ) {
+        var menuList = $(
+          '<ul class="iw-contextMenu iw-created iw-cm-menu" id="iw-contextMenu' +
+            randomNum +
+            '"></ul>'
+        );
 
-        var z = option.zIndex || trgr.css("zIndex") //added               
-        menuList.css("zIndex", z)//added
+        var z = option.zIndex || trgr.css("zIndex"); //added
+        menuList.css("zIndex", z); //added
         //menuList.css("zIndex", trgr.css("zIndex"))//removed
         $.each(selector, function (index, selObj) {
           var name = selObj.name,
-            fun = selObj.fun || function () { },
+            fun = selObj.fun || function () {},
             subMenu = selObj.subMenu,
-            img = selObj.img || '',
-            icon = selObj.icon || '',
+            img = selObj.img || "",
+            icon = selObj.icon || "",
             title = selObj.title || "",
             className = selObj.className || "",
             disable = selObj.disable,
-            list = $('<li title="' + title + '" class="' + className + '">' + name + '</li>');
+            list = $(
+              '<li title="' +
+                title +
+                '" class="' +
+                className +
+                '">' +
+                name +
+                "</li>"
+            );
 
           if (img) {
-            list.prepend('<img src="' + img + '" align="absmiddle" class="iw-mIcon" />');
+            list.prepend(
+              '<img src="' + img + '" align="absmiddle" class="iw-mIcon" />'
+            );
           } else if (icon) {
-            list.prepend('<span align="absmiddle" class="' + "iw-mIcon " + icon + '" />');
+            list.prepend(
+              '<span align="absmiddle" class="' + "iw-mIcon " + icon + '" />'
+            );
           }
           //to add disable
           if (disable) {
-            list.addClass('iw-mDisable');
+            list.addClass("iw-mDisable");
           }
 
           if (!subMenu) {
-            list.bind('click.contextMenu', function (e) {
-              fun.call(this, {
-                trigger: baseTrigger,
-                menu: menuList
-              }, e);
+            list.bind("click.contextMenu", function (e) {
+              fun.call(
+                this,
+                {
+                  trigger: baseTrigger,
+                  menu: menuList,
+                },
+                e
+              );
             });
           }
 
           //to create sub menu
           menuList.append(list);
           if (subMenu) {
-            list.addClass('iw-has-submenu').append('<div class="iw-cm-arrow-right" />');
+            list
+              .addClass("iw-has-submenu")
+              .append('<div class="iw-cm-arrow-right" />');
             iMethods.subMenu(list, subMenu, baseTrigger, option);
           }
         });
@@ -723,79 +789,90 @@
         if (baseTrigger.index(trgr[0]) == -1) {
           trgr.append(menuList);
         } else {
-          var par = option.containment == window ? 'body' : option.containment;
+          var par = option.containment == window ? "body" : option.containment;
           $(par).append(menuList);
         }
 
-        iMethods.onOff($('#iw-contextMenu' + randomNum));
-        return '#iw-contextMenu' + randomNum;
+        iMethods.onOff($("#iw-contextMenu" + randomNum));
+        return "#iw-contextMenu" + randomNum;
       } else if ($(selector).length != 0) {
         var element = $(selector);
-        element.removeClass('iw-contextMenuCurrent')
-          .addClass('iw-contextMenu iw-cm-menu iw-contextMenu' + randomNum)
-          .attr('menuId', 'iw-contextMenu' + randomNum)
-          .css('display', 'none');
+        element
+          .removeClass("iw-contextMenuCurrent")
+          .addClass("iw-contextMenu iw-cm-menu iw-contextMenu" + randomNum)
+          .attr("menuId", "iw-contextMenu" + randomNum)
+          .css("display", "none");
 
         //to create subMenu
-        element.find('ul').each(function (index, element) {
+        element.find("ul").each(function (index, element) {
           var subMenu = $(this),
-            parent = subMenu.parent('li');
+            parent = subMenu.parent("li");
           parent.append('<div class="iw-cm-arrow-right" />');
-          subMenu.addClass('iw-contextMenuCurrent');
-          iMethods.subMenu(parent, '.iw-contextMenuCurrent', baseTrigger, option);
+          subMenu.addClass("iw-contextMenuCurrent");
+          iMethods.subMenu(
+            parent,
+            ".iw-contextMenuCurrent",
+            baseTrigger,
+            option
+          );
         });
-        iMethods.onOff($('.iw-contextMenu' + randomNum));
-        return '.iw-contextMenu' + randomNum;
+        iMethods.onOff($(".iw-contextMenu" + randomNum));
+        return ".iw-contextMenu" + randomNum;
       }
     },
     subMenu: function (trigger, selector, baseTrigger, option) {
-      trigger.contextMenu('menu', selector, {
+      trigger.contextMenu("menu", selector, {
         triggerOn: option.subMenuTriggerOn,
-        displayAround: 'trigger',
-        position: 'auto',
-        mouseClick: 'left',
+        displayAround: "trigger",
+        position: "auto",
+        mouseClick: "left",
         baseTrigger: baseTrigger,
-        containment: option.containment
+        containment: option.containment,
       });
     },
     onOff: function (menu) {
-
-      menu.find('.iw-mOverlay').remove();
-      menu.find('.iw-mDisable').each(function () {
+      menu.find(".iw-mOverlay").remove();
+      menu.find(".iw-mDisable").each(function () {
         var list = $(this);
         list.append('<div class="iw-mOverlay"/>');
-        list.find('.iw-mOverlay').bind('click mouseenter', function (event) {
+        list.find(".iw-mOverlay").bind("click mouseenter", function (event) {
           event.stopPropagation();
         });
-
       });
-
     },
     optionOtimizer: function (method, option) {
       if (!option) {
         return;
       }
-      if (method == 'menu') {
+      if (method == "menu") {
         if (!option.mouseClick) {
-          option.mouseClick = 'right';
+          option.mouseClick = "right";
         }
       }
-      if ((option.mouseClick == 'right') && (option.triggerOn == 'click')) {
-        option.triggerOn = 'contextmenu';
+      if (option.mouseClick == "right" && option.triggerOn == "click") {
+        option.triggerOn = "contextmenu";
       }
 
-      if ($.inArray(option.triggerOn, ['hover', 'mouseenter', 'mouseover', 'mouseleave', 'mouseout', 'focusin', 'focusout']) != -1) {
-        option.displayAround = 'trigger';
+      if (
+        $.inArray(option.triggerOn, [
+          "hover",
+          "mouseenter",
+          "mouseover",
+          "mouseleave",
+          "mouseout",
+          "focusin",
+          "focusout",
+        ]) != -1
+      ) {
+        option.displayAround = "trigger";
       }
       return option;
-    }
+    },
   };
 })(jQuery, window, document);
 
-
 /* ********************************************************************************************************************** */
 /* ******************************contextmenu end************************************************************************** */
-
 
 /* 
 isFile: 
@@ -809,7 +886,6 @@ sep:
 */
 class FileSystemServices {
   constructor(_options) {
-
     function isMobile() {
       return (
         /(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows (ce|phone)|xda|xiino|android|ipad|playbook|silk/i.test(
@@ -819,7 +895,7 @@ class FileSystemServices {
           (navigator.userAgent || navigator.vendor || window.opera).substr(0, 4)
         )
       );
-    };
+    }
 
     const self = this;
     //self.hasModifiedFile = false;
@@ -830,21 +906,23 @@ class FileSystemServices {
     const fsServerUrl = options.fsServerUrl || "http://localhost:3000";
 
     //const fsServerUrl = options.fsServerUrl = 'https://grapher-file-system.herokuapp.com';
-    
+
     let currentFilename = null;
 
     this.currentFilename = function (filename) {
-      if (filename !== undefined)
-        currentFilename = filename;
+      if (filename !== undefined) currentFilename = filename;
       return currentFilename;
-    }
+    };
 
     const listOfFileTypes = options.listOfFileTypes || [];
     const listOfOpenWithTypes = options.listOfOpenWithTypes || [];
 
-    let imageLoaderSrc = "https://cdn.jsdelivr.net/gh/cah12/fs-mongo/img/imageLoader.png";
-    let imageFolderSrc = "https://cdn.jsdelivr.net/gh/cah12/fs-mongo/img/folder.png";
-    let imageFileSrc = "https://cdn.jsdelivr.net/gh/cah12/fs-mongo/img/file.png";
+    let imageLoaderSrc =
+      "https://cdn.jsdelivr.net/gh/cah12/fs-mongo/img/imageLoader.png";
+    let imageFolderSrc =
+      "https://cdn.jsdelivr.net/gh/cah12/fs-mongo/img/folder.png";
+    let imageFileSrc =
+      "https://cdn.jsdelivr.net/gh/cah12/fs-mongo/img/file.png";
 
     if (options.imageLoaderSrc !== undefined) {
       if (options.imageLoaderSrc.length) {
@@ -872,24 +950,26 @@ class FileSystemServices {
     }
 
     options.fsServerUrl = options.fsServerUrl || "";
-    options.sameDomain = options.sameDomain === undefined ? true : options.sameDomain;
+    options.sameDomain =
+      options.sameDomain === undefined ? true : options.sameDomain;
 
-    options.persistSession = options.persistSession === undefined ? true : options.persistSession;
+    options.persistSession =
+      options.persistSession === undefined ? true : options.persistSession;
 
     /*  console.log(444, options.fsServerUrl)
      console.log(445, imageFolderSrc)
      console.log(446, imageFileSrc) */
 
-    let editors = [];//holds objects {name: "Text Editor", editor: nodepad-obj}
+    let editors = []; //holds objects {name: "Text Editor", editor: nodepad-obj}
 
     const chooseEditor = new ChooseEditor();
 
     this.registerEditor = function (editor) {
       editors.push(editor);
-    }
+    };
 
     function getEditorByName(editorName) {
-      const element = editors.find(element => element.name === editorName);
+      const element = editors.find((element) => element.name === editorName);
       if (element !== undefined) {
         return element.editor;
       }
@@ -918,7 +998,7 @@ class FileSystemServices {
       {
         name: "Login",
         title: "Login to Mongo File System",
-        fun: doLogin
+        fun: doLogin,
       },
     ];
 
@@ -949,21 +1029,23 @@ class FileSystemServices {
     function doLogout() {
       self.disconnectFs((data) => {
         if (data.error) return console.log(data.msg);
-        mongoFsLoginLogoutRegisterSeletor.contextMenu(mongoFsLoginLogoutRegisterMenu, { zIndex: 2000 });
+        mongoFsLoginLogoutRegisterSeletor.contextMenu(
+          mongoFsLoginLogoutRegisterMenu,
+          { zIndex: 2000 }
+        );
         console.log(data.msg);
       });
     }
 
     function doNotepadDlg() {
-      if (self.notepad)
-        self.notepad.openEditor();
+      if (self.notepad) self.notepad.openEditor();
     }
 
-    $( "body" ).keydown(function(e) {        
-      if(e.ctrlKey && (e.key==='O' || e.key==='o')){
+    $("body").keydown(function (e) {
+      if (e.ctrlKey && (e.key === "O" || e.key === "o")) {
         e.preventDefault();
-        self.doExplorerDlg()
-      }        
+        self.doExplorerDlg();
+      }
     });
 
     let mongoFsLoginLogoutRegisterMenu2 = [
@@ -975,54 +1057,54 @@ class FileSystemServices {
       {
         name: "Explorer",
         title: "Launch the Mongo File System explorer.",
-        fun: self.doExplorerDlg
-      }
+        fun: self.doExplorerDlg,
+      },
     ];
 
     this.addMongoFsMenuItems = function (menuItems) {
       for (let i = 0; i < menuItems.length; ++i) {
         mongoFsLoginLogoutRegisterMenu2.push(menuItems[i]);
       }
-    }
+    };
 
     this.addNotepadMenuItem = function () {
       mongoFsLoginLogoutRegisterMenu2.push({
         name: "Notepad",
         title: "Launch the Mongo File System notepad.",
-        fun: doNotepadDlg
-      })
-    }
+        fun: doNotepadDlg,
+      });
+    };
 
     this.addSaveMenuItem = function (editor) {
       mongoFsLoginLogoutRegisterMenu2.push({
         name: "Save",
         title: "Saves current document to Mongo File System.",
-        fun: editor.save
+        fun: editor.save,
       });
-      $( "body" ).keydown(function(e) {        
-        if(e.ctrlKey && (e.key==='S' || e.key==='s')){
+      $("body").keydown(function (e) {
+        if (e.ctrlKey && (e.key === "S" || e.key === "s")) {
           e.preventDefault();
           editor.save();
-        }        
+        }
       });
-    }
+    };
 
     this.addSaveAsMenuItem = function (editor) {
       mongoFsLoginLogoutRegisterMenu2.push({
         name: "Save As",
         title: "Saves current document to Mongo File System.",
-        fun: editor.saveAs
-      })
-    }
+        fun: editor.saveAs,
+      });
+    };
 
     var loginDlg = $(
       '<div id="registerLoginModal" class="modal fade" role="dialog"> <div class="modal-dialog"> <!-- Modal content--> <div class="modal-content"> <div class="modal-header"> <button type="button" class="close" data-dismiss="modal">&times;</button> <h4 style="color:rgb(51, 122, 183);" id="dlg-title" class="modal-title">Sign Up</h4> </div> <div class="modal-body"> <form id="registerLoginForm"> <div class="bottom-border"><span class="glyphicon glyphicon-user"></span><input id="dlg-username" name="username" class="no-outline" type="text" style="width: 97%; border-style: none;" placeholder="Enter Username"></div> <br> <div id="dlg-email-row"> <div class="bottom-border"><span class="glyphicon glyphicon-envelope"></span><input id="dlg-email" name="email" class="no-outline" type="email" style="width: 97%; border-style: none;" placeholder="Enter Email Address"></div> <br> </div> <div class="bottom-border"><span class="glyphicon glyphicon-lock"></span><input id="dlg-password"  name="password" class="no-outline" type="password" style="width: 97%; border-style: none;" placeholder="Enter Password"></div> <br> <div id="dlg-repeat-row"> <div class="bottom-border"><span class="glyphicon glyphicon-lock"></span><input id="dlg-repeat-password"  name="repeat_password" class="no-outline" type="password" style="width: 97%; border-style: none;" placeholder="Repeat Password"></div> </div> </form> </div> <div class="modal-footer"> <div><input type="button" id="dlg-cancel-button" class="btn btn-primary" value="Cancel" /> <input type="button" id="dlg-ok-button" class="btn btn-primary" value="Sig Up" /></div> </div> </div> </div> </div>'
     );
     $("body").append(loginDlg);
 
-    $('#registerLoginModal').on('shown.bs.modal', function () {
-      $('#dlg-ok-button').trigger('focus')
-    })
+    $("#registerLoginModal").on("shown.bs.modal", function () {
+      $("#dlg-ok-button").trigger("focus");
+    });
 
     var saveDlg = $(
       '<div id="explorerSaveAsModal" class="modal fade" role="dialog" data-backdrop="static" data-keyboard="false"> <div class="modal-dialog"> <!-- Modal content--> <div id="dlg-saveDlg" class="modal-content"> <div class="modal-header"><button id="saveDlgCancelX" type="button" class="close">&times;</button><h4 id="dlgTitle" class="modal-title">Save As</h4> </div> <div class="modal-body"><br> <div class="container"></div> <div class="row"> <div class="col-sm-1"></div> <div class="col-sm-10"> <div class="row"> <div class="col-sm-2"> <label for="parent">Folder</label> </div> <div class="col-sm-7"> <input type="text" class="form-control inputClass" id="parent1" readonly> </div> <div class="col-sm-3"> <input type="button" class="form-control inputClass" id="configButton" value="Config"> </div> </div> <br> <div class="row"> <div class="col-sm-5"> <div style="overflow: scroll; height: 200px; border: solid; border-width: 1px;"> <table style="border-width: 0px; white-space: nowrap;" id="foldersTable"> <tbody></tbody> </table> </div> </div> <div id="menuElement" style="position: relative;" class="col-sm-7"> <div style="overflow: scroll; height: 200px; border: solid; border-width: 1px;"> <table style="border-width: 0px; white-space: nowrap;" id="filesTable"> <tbody></tbody> </table> </div> </div> </div><br> <div id="inputFields"> <div class="row"> <div class="col-sm-3"> <label for="name">File name</label> </div> <div class="col-sm-9"> <input type="text" class="form-control inputClass" id="name" name="name" value="new"> </div> </div> <br> <div class="row"> <div class="col-sm-3"> <label for="saveAsType">Save as type</label> </div> <div class="col-sm-9"> <select class="form-control inputClass" id="saveAsType"></select> </div> </div> </div> <br><button id="dlgCancelButton" style="width: 20%" class="btn btn-primary pull-right">Cancel</button> <button id="dlgSaveButton" style="width: 79%" class="btn btn-primary">Save</button> </div> <div class="col-sm-1"></div> </div> </div> </div> </div> </div>'
@@ -1032,24 +1114,24 @@ class FileSystemServices {
     var configDlg = $(
       '<div id="configModal" class="modal fade" role="dialog" data-backdrop="static" data-keyboard="false"> <div class="modal-dialog"> <!-- Modal content--> <div class="modal-content"> <div class="modal-header"><button id="configDlgCancelX" type="button" class="close">&times;</button><h4 id="dlg-title" style="text-align: center;" class="modal-title">Configuration</h4> </div> <div class="modal-body"><br> <div class="container"></div> <div class="row"> <div class="col-sm-1"></div> <div class="col-sm-10"> <div class="row"> <table class="config-table" style="width: 100%;"> <tr class="config-table"> <th class="config-table">Propery</th> <th class="config-table">Value</th> </tr> <tr class="config-table"> <td class="config-table">Root directory name</td> <td class="config-table"><input id="rootDir" type="text" style="width: 100%;" value="root:" /></td> </tr> <tr class="config-table"> <td class="config-table">Separator</td> <td class="config-table"><input id="sep" type="text" style="width: 100%;" value="" /></td> </tr> <tr class="config-table"> <td class="config-table">Dialog background color</td> <td class="config-table"><input id="dialog-background-color" type="color" value="#ffffff" /></td> </tr> <tr class="config-table"> <td class="config-table">Input background color</td> <td class="config-table"><input id="input-background-color" type="color" value="#ffffff" /></td> </tr> <tr class="config-table"> <td class="config-table">Store new files with GridFs</td> <td class="config-table"><input id="gridfs-storage" type="checkbox" checked /></td> </tr> </table> </div> <br> <div class="row"> <div class="col-sm-4"><input type="button" id="config-cancel-button" class="btn btn-primary" value="Cancel" style="width: 100%" ; /></div> <div class="col-sm-4"><input type="button" id="config-restore-button" class="btn btn-primary" value="Restore Defaults" style="width: 100%" ; /></div> <div class="col-sm-4"><input type="button" id="config-ok-button" class="btn btn-primary" value="Ok" style="width: 100%" ; /></div> </div> </div> </div> </div> </div> </div> </div>'
     );
-    /* $("body") */saveDlg.append(configDlg);
+    /* $("body") */ saveDlg.append(configDlg);
 
-    
-    $('#configModal').on('shown.bs.modal', function () {
-      $('#config-ok-button').trigger('focus')
-    })
+    $("#configModal").on("shown.bs.modal", function () {
+      $("#config-ok-button").trigger("focus");
+    });
 
-    
-
-    saveDlg.append($('<div id="chooseEditorModal" class="modal fade" role="dialog" data-backdrop="static" data-keyboard="false"> <div class="modal-dialog"> <!-- Modal content--> <div class="modal-content"> <div class="modal-header"><button id="chooseEditorCancelX" type="button" class="close">&times;</button> <h4 id="dlg-title" style="text-align: center;" class="modal-title">How would you like to open this file?</h4> </div> <div class="modal-body"><br> <div class="container"></div> <div class="row"> <div class="col-sm-1"></div> <div class="col-sm-10"> <div class="row"> <form id="chooseEditorTable" style="width: 100%;"> </form> </div> <br> <div class="row"> <label><input id="alwaysUse" type="checkbox"><span id="alwaysUseLabel"></span></label> </div> <br> <div class="row"> <div class="col-sm-6"><input type="button" id="chooseEditorCancel" class="btn btn-primary" value="Cancel" style="width: 100%" ; /></div> <div class="col-sm-6"><input type="button" id="chooseEditorOk" class="btn btn-primary" value="Ok" style="width: 100%" ; /></div> </div> </div> </div> </div> </div> </div> </div>'));
-
-
-    
+    saveDlg.append(
+      $(
+        '<div id="chooseEditorModal" class="modal fade" role="dialog" data-backdrop="static" data-keyboard="false"> <div class="modal-dialog"> <!-- Modal content--> <div class="modal-content"> <div class="modal-header"><button id="chooseEditorCancelX" type="button" class="close">&times;</button> <h4 id="dlg-title" style="text-align: center;" class="modal-title">How would you like to open this file?</h4> </div> <div class="modal-body"><br> <div class="container"></div> <div class="row"> <div class="col-sm-1"></div> <div class="col-sm-10"> <div class="row"> <form id="chooseEditorTable" style="width: 100%;"> </form> </div> <br> <div class="row"> <label><input id="alwaysUse" type="checkbox"><span id="alwaysUseLabel"></span></label> </div> <br> <div class="row"> <div class="col-sm-6"><input type="button" id="chooseEditorCancel" class="btn btn-primary" value="Cancel" style="width: 100%" ; /></div> <div class="col-sm-6"><input type="button" id="chooseEditorOk" class="btn btn-primary" value="Ok" style="width: 100%" ; /></div> </div> </div> </div> </div> </div> </div> </div>'
+      )
+    );
 
     if (imageLoaderSrc)
       saveDlg.append(
         $(
-          '<img id="imageLoader" class="loader" style= "position: absolute;" src=' + imageLoaderSrc + '>'
+          '<img id="imageLoader" class="loader" style= "position: absolute;" src=' +
+            imageLoaderSrc +
+            ">"
         )
       );
 
@@ -1095,9 +1177,8 @@ class FileSystemServices {
       //$("#imageLoader").css("zIndex", 20);
     }
 
-
-
-    const m_fsServerUrl = fsServerUrl;
+    //const m_fsServerUrl = fsServerUrl;
+    const m_fsServerUrl = options.fsServerUrl;
     var name = "root";
     var parentName = "";
     var currentRowSelector = null;
@@ -1118,7 +1199,7 @@ class FileSystemServices {
     $("#dlgCancelButton, #saveDlgCancelX").click(function () {
       $("#explorerSaveAsModal").attr("editorName", null);
       saveDlg.modal("hide");
-    })
+    });
 
     String.prototype.spliceStr = function (idx, rem, str) {
       return this.slice(0, idx) + str + this.slice(idx + Math.abs(rem));
@@ -1130,7 +1211,7 @@ class FileSystemServices {
     }
 
     function refresh(cb) {
-      const refreshToken = self.getRefreshToken()
+      const refreshToken = self.getRefreshToken();
       if (!options.sameDomain && !refreshToken) return;
 
       $.ajax({
@@ -1147,20 +1228,20 @@ class FileSystemServices {
           }
           clearTimeout(timer);
           countDown();
-          cb && cb(false, data)
+          cb && cb(false, data);
         },
         error: function (data) {
-          self.clearRefreshToken();//remove any invalid token
-          cb && cb(true, data); //error         
+          self.clearRefreshToken(); //remove any invalid token
+          cb && cb(true, data); //error
         },
       });
     }
     //Set options.sameDomain to false to use getRefreshToken() even in same domain
     function countDown() {
-      clearTimeout(timer)
+      clearTimeout(timer);
       timer = setTimeout(() => {
         refresh();
-      }, (options.accessTokenExpiry - 0.5) * 1000)
+      }, (options.accessTokenExpiry - 0.5) * 1000);
     }
 
     //Renames a file or folder
@@ -1259,7 +1340,7 @@ class FileSystemServices {
                   }
                   changed = false;
                   input[0].focus();
-                })()
+                })();
               },
               error: function (res) {
                 _data.newName = g_data.name;
@@ -1282,10 +1363,10 @@ class FileSystemServices {
                       try {
                         await doInit(_parent);
                       } catch (err) {
-                        console.log("doInit failed 12")
+                        console.log("doInit failed 12");
                         alert(`Initialisation failed. Please retry.`);
                       }
-                    })()
+                    })();
                   },
                   error: function (returnval) {
                     input[0].focus();
@@ -1324,7 +1405,9 @@ class FileSystemServices {
         endPoint = "removeFile";
         m_selectedName = m_selectedName.replace("f", "");
         if (currentFilename === m_selectedName) {
-          alert(`The file "${currentFilename}" is opened. Close it before deleting it.`)
+          alert(
+            `The file "${currentFilename}" is opened. Close it before deleting it.`
+          );
           return;
         }
       }
@@ -1353,7 +1436,7 @@ class FileSystemServices {
         error: function (returnval) {
           console.log(returnval.responseJSON);
           alert(`Failed to delete "${m_selectedName}". Please retry.`);
-          currentSelectedRowSelector.toggleClass("selected")
+          currentSelectedRowSelector.toggleClass("selected");
         },
       });
     }
@@ -1548,7 +1631,7 @@ class FileSystemServices {
                   console.log("doInit failed 3");
                   alert(`Initialisation failed. Please retry.`);
                 }
-              })()
+              })();
             },
             error: function (returnval) {
               //console.log(returnval.responseJSON);
@@ -1562,7 +1645,6 @@ class FileSystemServices {
 
     let openFileWithSubmenu = [];
 
-
     openFileWithSubmenu.push({
       name: "Choose...",
       title: `Launches the choose dialog`,
@@ -1571,18 +1653,18 @@ class FileSystemServices {
           const filename = selectedName.replace("f", "");
           let ext = selectedName.slice(selectedName.length - 4);
           if (ext.charAt(0) !== ".") {
-            ext = ".all"
+            ext = ".all";
           }
           try {
             const editor = await chooseEditor.chooseEditorByExt(editors, ext);
             //console.log(456, editor)
-            openFile(filename, { editorName: editor.m_data.name })
+            openFile(filename, { editorName: editor.m_data.name });
           } catch (err) {
-            console.log(err)
+            console.log(err);
           }
         })();
       },
-    })
+    });
 
     var menuNotSelectedSubmenu = [
       {
@@ -1671,17 +1753,15 @@ class FileSystemServices {
     let nodeToCopy = null;
     let nodeCut = false;
 
-
-
     function copyNode() {
-      nodeToCopy = selectedName
+      nodeToCopy = selectedName;
       if (currentSelectedRowSelector.attr("data-tt-file") == "file") {
         nodeToCopy = nodeToCopy.replace("f", "");
       }
     }
 
     function cutNode() {
-      nodeToCopy = selectedName
+      nodeToCopy = selectedName;
       if (currentSelectedRowSelector.attr("data-tt-file") == "file") {
         nodeToCopy = nodeToCopy.replace("f", "");
       }
@@ -1695,7 +1775,7 @@ class FileSystemServices {
         dest = $("#rootDir").val();
       }
 
-      const arr = nodeToCopy.split(configData.sep)
+      const arr = nodeToCopy.split(configData.sep);
       const name = dest + configData.sep + arr[arr.length - 1];
       //console.log("name", name)
       let m_data = { src, dest };
@@ -1710,7 +1790,11 @@ class FileSystemServices {
         dataType: "json",
         success: function (res) {
           (async function () {
-            if (confirm(`File with the name "${name}" already exist. Do you want to replace it?`)) {
+            if (
+              confirm(
+                `File with the name "${name}" already exist. Do you want to replace it?`
+              )
+            ) {
               $.ajax({
                 method: "POST",
                 url: m_fsServerUrl + "/copyFile",
@@ -1720,17 +1804,17 @@ class FileSystemServices {
                 data: JSON.stringify(m_data),
                 contentType: "application/json; charset=utf-8",
                 dataType: "json",
-                success: /* async  */function (cpyName) {
+                success: /* async  */ function (cpyName) {
                   nodeToCopy = null;
-                  cb && cb(src)
+                  cb && cb(src);
                 },
                 error: function (err) {
                   console.log(err.responseJSON);
-                  cb && cb(null)
+                  cb && cb(null);
                 },
               });
             }
-          })()
+          })();
         },
         error: /* async */ function (res) {
           $.ajax({
@@ -1742,18 +1826,17 @@ class FileSystemServices {
             data: JSON.stringify(m_data),
             contentType: "application/json; charset=utf-8",
             dataType: "json",
-            success: /* async  */function (cpyName) {
+            success: /* async  */ function (cpyName) {
               nodeToCopy = null;
               cb && cb(src);
             },
             error: function (err) {
               console.log(err.responseJSON);
-              cb && cb(null)
+              cb && cb(null);
             },
           });
-        }
+        },
       });
-
     }
 
     var pasteMenu = {
@@ -1846,7 +1929,7 @@ class FileSystemServices {
         fun: function () {
           doDelete();
         },
-      }
+      },
     ];
 
     var pointIn = false;
@@ -1859,29 +1942,31 @@ class FileSystemServices {
       pointIn = false;
     });
 
-
     let longtouch = false;
 
     let touchTimer = null;
 
-    $("#explorerSaveAsModal").on("touchstart", function(){
+    $("#explorerSaveAsModal").on("touchstart", function () {
       longtouch = false;
-      clearTimeout(touchTimer)
-      touchTimer = setTimeout(function(){
+      clearTimeout(touchTimer);
+      touchTimer = setTimeout(function () {
         longtouch = true;
-       }, 500)
+      }, 500);
     });
 
     var menuActive = false;
     $("#explorerSaveAsModal").on("mousedown touchend", function (e) {
       //console.log(longtouch)
-      if (!longtouch && (e.button != 2) || !pointIn /* || !filesTableRowSelected */) {
+      if (
+        (!longtouch && e.button != 2) ||
+        !pointIn /* || !filesTableRowSelected */
+      ) {
         //not right button
         if (menuActive) {
           $("#explorerSaveAsModal").contextMenu("destroy");
           menuActive = false;
         }
-       // pointIn = false;
+        // pointIn = false;
         return;
       }
       pointIn = false;
@@ -1904,9 +1989,7 @@ class FileSystemServices {
           ) {
             menuSelected.splice(1, 0, openFileWithMenu);
           }
-          if (
-            menuSelected[0].name === "Paste"
-          ) {
+          if (menuSelected[0].name === "Paste") {
             menuSelected.splice(0, 1);
           }
         } else {
@@ -1922,9 +2005,7 @@ class FileSystemServices {
               menuSelected.splice(0, 0, pasteMenu);
             }
           } else {
-            if (
-              menuSelected[0].name === "Paste"
-            ) {
+            if (menuSelected[0].name === "Paste") {
               menuSelected.splice(0, 1);
             }
           }
@@ -1936,13 +2017,10 @@ class FileSystemServices {
           menuNotSelected.splice(0, 0, pasteMenu);
         }
       } else {
-        if (
-          menuNotSelected[0].name === "Paste"
-        ) {
+        if (menuNotSelected[0].name === "Paste") {
           menuNotSelected.splice(0, 1);
         }
       }
-
 
       var menu = filesTableRowSelected == true ? menuSelected : menuNotSelected;
       $("#explorerSaveAsModal").contextMenu(menu, {
@@ -1962,10 +2040,10 @@ class FileSystemServices {
       $("#saveAsType").append(
         $(
           "<option value=" +
-          listOfFileTypes[i].ext +
-          ">" +
-          listOfFileTypes[i].display +
-          "</option>"
+            listOfFileTypes[i].ext +
+            ">" +
+            listOfFileTypes[i].display +
+            "</option>"
         )
       );
       fileExtensions.push(listOfFileTypes[i].ext);
@@ -2051,7 +2129,10 @@ class FileSystemServices {
         //console.log(_name)
         if (children[i].isFile) {
           var selectedExtType = $("#saveAsType").val();
-          if ((selectedExtType === ".all") || ($("#dlgTitle").html() === "File Explorer")) {
+          if (
+            selectedExtType === ".all" ||
+            $("#dlgTitle").html() === "File Explorer"
+          ) {
             addRow(children[i]);
             continue;
           } else {
@@ -2069,12 +2150,12 @@ class FileSystemServices {
       }
     }
 
-    $("#foldersTable tbody").on("touchstart", function(){
+    $("#foldersTable tbody").on("touchstart", function () {
       longtouch = false;
-      clearTimeout(touchTimer)
-      touchTimer = setTimeout(function(){
+      clearTimeout(touchTimer);
+      touchTimer = setTimeout(function () {
         longtouch = true;
-       }, 500)
+      }, 500);
     });
 
     $("#foldersTable tbody").on("mousedown touchend", "tr", function (e) {
@@ -2092,17 +2173,17 @@ class FileSystemServices {
       }
     });
 
-    $("#filesTable tbody").on("touchstart", function(){
+    $("#filesTable tbody").on("touchstart", function () {
       longtouch = false;
-      clearTimeout(touchTimer)
-      touchTimer = setTimeout(function(){
+      clearTimeout(touchTimer);
+      touchTimer = setTimeout(function () {
         longtouch = true;
-       }, 500)
+      }, 500);
     });
 
     // Highlight selected row
     $("#filesTable tbody").on("mousedown touchend", "tr", function (e) {
-      if (longtouch || (e.button == 2)) {
+      if (longtouch || e.button == 2) {
         if (currentSelectedRowSelector) {
           if (currentSelectedRowSelector.attr("id") !== $(this).attr("id")) {
             //right click on a non-selected row
@@ -2159,10 +2240,12 @@ class FileSystemServices {
         $("#parent1").val(_name);
         updateFilesTable();
       } else {
-        if (!editing) openFile($(this).attr("data-tt-path"), { editorName: $("#explorerSaveAsModal").attr("editorName") });
+        if (!editing)
+          openFile($(this).attr("data-tt-path"), {
+            editorName: $("#explorerSaveAsModal").attr("editorName"),
+          });
       }
     });
-
 
     function drag(ev) {
       ev.originalEvent.dataTransfer.setData("text", $(this).attr("id"));
@@ -2226,7 +2309,11 @@ class FileSystemServices {
           },
           error: function (err) {
             if (err.responseJSON.msg === "File with that name already exist") {
-              if (confirm(`File with the name "${newName}" already exist. Do you want to replace it?`)) {
+              if (
+                confirm(
+                  `File with the name "${newName}" already exist. Do you want to replace it?`
+                )
+              ) {
                 m_data.replaceFile = true;
                 //console.log(456, m_data)
                 $.ajax({
@@ -2259,7 +2346,6 @@ class FileSystemServices {
                     })();
                   },
                   error: function (err) {
-
                     //console.log(458, m_data)
                     console.log(err.responseJSON);
                   },
@@ -2277,13 +2363,17 @@ class FileSystemServices {
       if (rootData.isFile) {
         if (imageFileSrc)
           row = $(
-            '<tr draggable="true"><td style="border-width: 0px;"><img src=' + imageFileSrc + '> ' +
-            rootData.displayName +
-            "</td></tr>"
+            '<tr draggable="true"><td style="border-width: 0px;"><img src=' +
+              imageFileSrc +
+              "> " +
+              rootData.displayName +
+              "</td></tr>"
           );
         else
           row = $(
-            '<tr draggable="true"><td style="border-width: 0px;">' + rootData.displayName + '</td></tr>'
+            '<tr draggable="true"><td style="border-width: 0px;">' +
+              rootData.displayName +
+              "</td></tr>"
           );
         row.attr("data-tt-file", "file");
         row.attr("data-tt-ext", rootData.ext);
@@ -2291,13 +2381,17 @@ class FileSystemServices {
       } else {
         if (imageFolderSrc)
           row = $(
-            '<tr><td style="border-width: 0px;"><img src=' + imageFolderSrc + '> ' +
-            rootData.displayName +
-            "</td></tr>"
+            '<tr><td style="border-width: 0px;"><img src=' +
+              imageFolderSrc +
+              "> " +
+              rootData.displayName +
+              "</td></tr>"
           );
         else
           row = $(
-            '<tr><td style="border-width: 0px;">' + rootData.displayName + '</td></tr>'
+            '<tr><td style="border-width: 0px;">' +
+              rootData.displayName +
+              "</td></tr>"
           );
         row.attr("data-tt-file", "folder");
       }
@@ -2315,8 +2409,7 @@ class FileSystemServices {
       row.on("dragover", allowDrop);
       row.on("drop", drop);
 
-      if(isMobile())
-        row.attr("draggable", false)
+      if (isMobile()) row.attr("draggable", false);
       return row;
     }
 
@@ -2350,7 +2443,11 @@ class FileSystemServices {
     } */
 
     function openFile(filename, { editorName, options }) {
-      $(window).trigger("beforeOpen", [filename, getFileExtension(filename), editorName || null]);
+      $(window).trigger("beforeOpen", [
+        filename,
+        getFileExtension(filename),
+        editorName || null,
+      ]);
       //console.log(2000, filename)
       options = options || { encoding: "utf8", flag: "r" };
       var _data = { name: filename, options: options };
@@ -2363,36 +2460,49 @@ class FileSystemServices {
         data: JSON.stringify(_data),
         contentType: "application/json; charset=utf-8",
         beforeSend: function () {
-          if (imageLoaderSrc)
-            $("#imageLoader").show();
+          if (imageLoaderSrc) $("#imageLoader").show();
         },
         complete: function () {
-          if (imageLoaderSrc)
-            $("#imageLoader").hide();
+          if (imageLoaderSrc) $("#imageLoader").hide();
         },
         success: function (data) {
           // openFileSuccessFunction(filename, data, editorName);
           (async function () {
             let editor = null;
-            if (editorName !== undefined) {//a specific editor is requested       
+            if (editorName !== undefined) {
+              //a specific editor is requested
               editor = getEditorByName(editorName);
             } else {
-              editor = await chooseEditor.getEditorByExt(editors, getFileExtension(filename));
+              editor = await chooseEditor.getEditorByExt(
+                editors,
+                getFileExtension(filename)
+              );
             }
-            $(window).trigger("fileOpened", [data, filename, getFileExtension(filename), editor.m_data.name]);
+            $(window).trigger("fileOpened", [
+              data,
+              filename,
+              getFileExtension(filename),
+              editor.m_data.name,
+            ]);
             if (editor) {
-              editor.setData(data, filename, getFileExtension(filename), editorName);
-            } else { //If we get here, we use fs default setData() method
-              self.setData && self.setData(data, filename, getFileExtension(filename));
+              editor.setData(
+                data,
+                filename,
+                getFileExtension(filename),
+                editorName
+              );
+            } else {
+              //If we get here, we use fs default setData() method
+              self.setData &&
+                self.setData(data, filename, getFileExtension(filename));
             }
             currentFilename = filename;
             if ($("#dlgTitle").html() === "File Explorer") {
               $("#saveAsType").val(".all");
             }
 
-           // $("#explorerSaveAsModal").modal("hide");
-
-          })()
+            // $("#explorerSaveAsModal").modal("hide");
+          })();
         },
         error: function (returnval) {
           if (!self.getRefreshToken()) {
@@ -2407,7 +2517,6 @@ class FileSystemServices {
       });
     }
 
-
     function openFileWith(obj) {
       openFile(currentSelectedRowSelector.attr("data-tt-path"), obj);
     }
@@ -2417,7 +2526,9 @@ class FileSystemServices {
         const ext =
           $("#saveAsType").val() == ".all" ? null : $("#saveAsType").val();
         let data = null;
-        const editor = getEditorByName($("#explorerSaveAsModal").attr("editorName"))
+        const editor = getEditorByName(
+          $("#explorerSaveAsModal").attr("editorName")
+        );
         if (editor) {
           data = editor.getData(ext);
         } else {
@@ -2437,7 +2548,6 @@ class FileSystemServices {
 
     function doConfigDlg() {
       getConfigFs((data) => {
-
         $("#rootDir").val(data.rootDir || "root:");
         $("#sep").val(data.sep || "\\");
         $("#dialog-background-color").val(
@@ -2449,11 +2559,11 @@ class FileSystemServices {
         $("#gridfs-storage").prop("checked", data.gridFsStorage);
         $("#configModal").modal();
       });
-    };
+    }
 
     $("#config-cancel-button, #configDlgCancelX").click(() => {
       $("#configModal").modal("hide");
-    })
+    });
 
     $("#config-ok-button").click(async () => {
       configData.gridFsStorage = $("#gridfs-storage").prop("checked");
@@ -2486,7 +2596,7 @@ class FileSystemServices {
       $("#dlg-ok-button").val("Sign In");
       $("#dlg-password").val("");
       $("#registerLoginModal").modal();
-    };
+    }
 
     function doRegister() {
       $("#dlg-repeat-row").show();
@@ -2496,35 +2606,34 @@ class FileSystemServices {
       $("#dlg-password").val("");
       $("#dlg-repeat-password").val("");
       $("#registerLoginModal").modal();
-    };
+    }
 
     function validateEmail(email) {
-      const re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+      const re =
+        /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
       return re.test(email);
     }
 
-
     $("#dlg-ok-button").on("click", () => {
       if ($("#dlg-title").html() == "Sign In") {
-        self.connectFs(
-          $("#registerLoginForm").serializeJSON(),
-          (data) => {
-            //console.log(1235, data)
-            if (data.error) {
-              alert(data.msg);
-              if (data.msg === "Not registered.")
-                doRegister();
-              return;
-            } else {
-              $("#dlg-password").val("");
-              if (mongoFsLoginLogoutRegisterSeletor) {
-                mongoFsLoginLogoutRegisterSeletor.contextMenu(mongoFsLoginLogoutRegisterMenu2, { zIndex: 2000 });
-              }
-              console.log(data.msg);
-              $("#registerLoginModal").modal("hide");
+        self.connectFs($("#registerLoginForm").serializeJSON(), (data) => {
+          //console.log(1235, data)
+          if (data.error) {
+            alert(data.msg);
+            if (data.msg === "Not registered.") doRegister();
+            return;
+          } else {
+            $("#dlg-password").val("");
+            if (mongoFsLoginLogoutRegisterSeletor) {
+              mongoFsLoginLogoutRegisterSeletor.contextMenu(
+                mongoFsLoginLogoutRegisterMenu2,
+                { zIndex: 2000 }
+              );
             }
+            console.log(data.msg);
+            $("#registerLoginModal").modal("hide");
           }
-        );
+        });
       } else {
         if (!validateEmail($("#dlg-email").val())) {
           alert("Invalid email");
@@ -2535,23 +2644,20 @@ class FileSystemServices {
           return;
         }
 
-        self.registerFs(
-          $("#registerLoginForm").serializeJSON(),
-          (data) => {
-            if (!data.success) {
-              alert(data.msg);
-              $("#dlg-username").val("");
-              $("#dlg-email").val("");
-              $("#dlg-password").val("");
-              $("#dlg-repeat-password").val("");
-            } else {
-              $("#dlg-password").val("");
-              $("#dlg-repeat-password").val("");
-              $(window).trigger("registered", $("#dlg-username").val());
-              $("#registerLoginModal").modal("hide");
-            }
+        self.registerFs($("#registerLoginForm").serializeJSON(), (data) => {
+          if (!data.success) {
+            alert(data.msg);
+            $("#dlg-username").val("");
+            $("#dlg-email").val("");
+            $("#dlg-password").val("");
+            $("#dlg-repeat-password").val("");
+          } else {
+            $("#dlg-password").val("");
+            $("#dlg-repeat-password").val("");
+            $(window).trigger("registered", $("#dlg-username").val());
+            $("#registerLoginModal").modal("hide");
           }
-        );
+        });
       }
     });
 
@@ -2593,8 +2699,10 @@ class FileSystemServices {
         "Register for or Login to Mongo File System"
       );
 
-      mongoFsLoginLogoutRegisterSeletor.contextMenu(mongoFsLoginLogoutRegisterMenu, { zIndex: 2000 });
-
+      mongoFsLoginLogoutRegisterSeletor.contextMenu(
+        mongoFsLoginLogoutRegisterMenu,
+        { zIndex: 2000 }
+      );
     }
 
     this.saveAs = function (fileData, _flag) {
@@ -2621,41 +2729,61 @@ class FileSystemServices {
           contentType: "application/json; charset=utf-8",
           dataType: "json",
           beforeSend: function () {
-            if (imageLoaderSrc)
-              $("#imageLoader").show();
+            if (imageLoaderSrc) $("#imageLoader").show();
           },
           complete: function () {
-            if (imageLoaderSrc)
-              $("#imageLoader").hide();
+            if (imageLoaderSrc) $("#imageLoader").hide();
           },
           success: function (data) {
             $(window).trigger("afterSave");
-            $(window).trigger("fileSaved", [_data.name, $("#explorerSaveAsModal").attr("editorName")]);
-            $(window).trigger("afterEditorSaveAs", [_data.name, $("#explorerSaveAsModal").attr("editorName")]);
+            $(window).trigger("fileSaved", [
+              _data.name,
+              $("#explorerSaveAsModal").attr("editorName"),
+            ]);
+            $(window).trigger("afterEditorSaveAs", [
+              _data.name,
+              $("#explorerSaveAsModal").attr("editorName"),
+            ]);
             //currentFileSaved();
             resolve(true);
           },
           error: async function (err) {
-            if (confirm(`A file with the name "${_data.name}" already exist. Would you like to replace it ?`)) {
+            if (
+              confirm(
+                `A file with the name "${_data.name}" already exist. Would you like to replace it ?`
+              )
+            ) {
               try {
                 await self.saveAs(fileData, "w");
-                $(window).trigger("fileSaved", [_data.name, $("#explorerSaveAsModal").attr("editorName")]);
-                $(window).trigger("afterEditorSaveAs", [_data.name, $("#explorerSaveAsModal").attr("editorName")]);
+                $(window).trigger("fileSaved", [
+                  _data.name,
+                  $("#explorerSaveAsModal").attr("editorName"),
+                ]);
+                $(window).trigger("afterEditorSaveAs", [
+                  _data.name,
+                  $("#explorerSaveAsModal").attr("editorName"),
+                ]);
                 resolve(true);
               } catch (err) {
-                $(window).trigger("afterEditorSaveAs", [_data.name, $("#explorerSaveAsModal").attr("editorName")]);
+                $(window).trigger("afterEditorSaveAs", [
+                  _data.name,
+                  $("#explorerSaveAsModal").attr("editorName"),
+                ]);
                 reject(false);
               }
             } else {
-              $(window).trigger("afterEditorSaveAs", [_data.name, $("#explorerSaveAsModal").attr("editorName")]);
+              $(window).trigger("afterEditorSaveAs", [
+                _data.name,
+                $("#explorerSaveAsModal").attr("editorName"),
+              ]);
               reject(false);
             }
           },
         });
       });
-    }
+    };
 
-    this.save = function (filename, fileData/* , _flag */) {
+    this.save = function (filename, fileData /* , _flag */) {
       return new Promise((resolve, reject) => {
         $(window).trigger("beforeSave", filename);
         var _data = {};
@@ -2676,16 +2804,17 @@ class FileSystemServices {
           contentType: "application/json; charset=utf-8",
           dataType: "json",
           beforeSend: function () {
-            if (imageLoaderSrc)
-              $("#imageLoader").show();
+            if (imageLoaderSrc) $("#imageLoader").show();
           },
           complete: function () {
-            if (imageLoaderSrc)
-              $("#imageLoader").hide();
+            if (imageLoaderSrc) $("#imageLoader").hide();
           },
           success: function (data) {
-            $(window).trigger("afterSave")
-            $(window).trigger("fileSaved", [filename, $("#explorerSaveAsModal").attr("editorName")]);
+            $(window).trigger("afterSave");
+            $(window).trigger("fileSaved", [
+              filename,
+              $("#explorerSaveAsModal").attr("editorName"),
+            ]);
             //currentFileSaved()
             resolve(true);
           },
@@ -2694,7 +2823,7 @@ class FileSystemServices {
           },
         });
       });
-    }
+    };
 
     $("#foldersTable").treetable(options);
 
@@ -2746,7 +2875,6 @@ class FileSystemServices {
             //console.log(222, m_name)
             $("#parent1").val(m_name);
 
-
             resolve(true);
           },
           error: function (returnval) {
@@ -2771,7 +2899,7 @@ class FileSystemServices {
         alert(`Initialisation failed. Please retry.`);
         return false;
       }
-    };
+    }
 
     /* email is optional */
     this.registerFs = function (registerData, cb) {
@@ -2813,7 +2941,7 @@ class FileSystemServices {
           cb(data);
         },
       });
-    };
+    }
 
     function setConfigFs(data, cb) {
       $.ajax({
@@ -2832,7 +2960,7 @@ class FileSystemServices {
           cb(data.responseJSON);
         },
       });
-    };
+    }
 
     this.connectFs = function (connectData, cb) {
       if (typeof connectData === "function") {
@@ -2850,7 +2978,7 @@ class FileSystemServices {
           if (!options.sameDomain) {
             self.storeRefreshToken(data.refreshToken);
           }
-          clearTimeout(timer);//ensure any earlier timeout is cleared
+          clearTimeout(timer); //ensure any earlier timeout is cleared
           countDown(); //monitor expiration
           configData = data.configData;
           name = configData.rootDir;
@@ -2868,11 +2996,12 @@ class FileSystemServices {
       $(window).trigger("disconnected");
       stopCountDown();
       // to support logging out from all windows
-      localStorage.setItem('logout', Date.now());
+      localStorage.setItem("logout", Date.now());
       const refreshToken = self.getRefreshToken();
       if (!refreshToken) {
         inMemoryToken = null;
-        cb && cb({ error: false, msg: "Disconnected: refresh token not found" });
+        cb &&
+          cb({ error: false, msg: "Disconnected: refresh token not found" });
         return;
       }
       $.ajax({
@@ -2897,15 +3026,15 @@ class FileSystemServices {
 
     this.isConnected = async function () {
       return inMemoryToken !== null;
-    }
+    };
 
-    window.addEventListener('storage', (event) => {
+    window.addEventListener("storage", (event) => {
       //console.log("event.key", event.key)
-      if (event.key === 'logout') {
-        console.log('logged out from storage!');
+      if (event.key === "logout") {
+        console.log("logged out from storage!");
         //location.reload()
       }
-    })
+    });
 
     function breakdown() {
       $.ajax({
@@ -2922,12 +3051,11 @@ class FileSystemServices {
       });
     }
 
-
     window.onbeforeunload = function (e) {
       for (let i = 0; i < editors.length; ++i) {
         if (editors[i].editor.currentFileModified()) {
           e.preventDefault();
-          e.returnValue = '';
+          e.returnValue = "";
           return "";
         }
       }
@@ -2937,8 +3065,7 @@ class FileSystemServices {
       breakdown();
     };
 
-
-    window.addEventListener('load', (event) => {
+    window.addEventListener("load", (event) => {
       self.clearRefreshToken();
     });
 
@@ -2946,7 +3073,7 @@ class FileSystemServices {
       if (options.persistSession) {
         refresh((err, data) => {
           if (err) {
-            console.log(data.responseJSON.msg)
+            console.log(data.responseJSON.msg);
           } else {
             $.ajax({
               method: "POST",
@@ -2965,7 +3092,10 @@ class FileSystemServices {
                   mongoFsLoginLogoutRegisterSeletor.contextMenu([]);
                 } */
                 if (mongoFsLoginLogoutRegisterSeletor) {
-                  mongoFsLoginLogoutRegisterSeletor.contextMenu(mongoFsLoginLogoutRegisterMenu2, { zIndex: 2000 });
+                  mongoFsLoginLogoutRegisterSeletor.contextMenu(
+                    mongoFsLoginLogoutRegisterMenu2,
+                    { zIndex: 2000 }
+                  );
                 }
                 configData = data.configData;
                 name = configData.rootDir;
@@ -2987,7 +3117,10 @@ class FileSystemServices {
       $.ajax({
         method: "POST",
         url: m_fsServerUrl + "/setup",
-        data: JSON.stringify({ sameDomain: options.sameDomain, accessTokenExpiry: options.accessTokenExpiry }),
+        data: JSON.stringify({
+          sameDomain: options.sameDomain,
+          accessTokenExpiry: options.accessTokenExpiry,
+        }),
         contentType: "application/json; charset=utf-8",
         dataType: "json",
         success: function (data) {
@@ -3000,7 +3133,6 @@ class FileSystemServices {
     }
     setup();
   }
-
 
   getRefreshToken() {
     return localStorage.getItem("RefreshToken");
@@ -3015,22 +3147,26 @@ class FileSystemServices {
   }
 
   enableNotepad() {
-    const editorSelector = $('<div id="notepadModal" class="modal fade" role="dialog" data-backdrop="static" data-keyboard="false"> <div class="modal-dialog" role="document" style="width: 98%;"> <div class="modal-content"> <div class="modal-header"> <img src="https://cdn.jsdelivr.net/gh/cah12/fs-mongo/img/file.png"> <label class="modal-title" id="notepadModalLabel">Mongo Notepad</label> <button id="closeXButton100" type="button" class="close" aria-label="Close"> <span aria-hidden="true">&times;</span> </button> </div> <div class="modal-body" > <textarea id="myNotepad" autocomplete="false" spellcheck="false" style="outline: none; resize: none; width: 100%;"></textarea> </div> <div class="modal-footer"> <button id="closeButton" type="button" class="btn btn-secondary">Close</button> <button id="notepadOpenFile" type="button" class="btn btn-primary">Open file</button> <button id="notepadSaveAs" type="button" class="btn btn-primary">Save As</button> <button id="notepadSave" type="button" class="btn btn-primary" disabled>Save</button> </div> </div> </div> </div>');
+    const editorSelector = $(
+      '<div id="notepadModal" class="modal fade" role="dialog" data-backdrop="static" data-keyboard="false"> <div class="modal-dialog" role="document" style="width: 98%;"> <div class="modal-content"> <div class="modal-header"> <img src="https://cdn.jsdelivr.net/gh/cah12/fs-mongo/img/file.png"> <label class="modal-title" id="notepadModalLabel">Mongo Notepad</label> <button id="closeXButton100" type="button" class="close" aria-label="Close"> <span aria-hidden="true">&times;</span> </button> </div> <div class="modal-body" > <textarea id="myNotepad" autocomplete="false" spellcheck="false" style="outline: none; resize: none; width: 100%;"></textarea> </div> <div class="modal-footer"> <button id="closeButton" type="button" class="btn btn-secondary">Close</button> <button id="notepadOpenFile" type="button" class="btn btn-primary">Open file</button> <button id="notepadSaveAs" type="button" class="btn btn-primary">Save As</button> <button id="notepadSave" type="button" class="btn btn-primary" disabled>Save</button> </div> </div> </div> </div>'
+    );
     $("body").append(editorSelector);
     $("#myNotepad").css("height", $(window).height() * 0.71);
 
-    const options = {}
+    const options = {};
     options.fs = this;
     options.editorName = "Text Editor";
-    options.fileExtensions = ['.txt', null];
+    options.fileExtensions = [".txt", null];
     options.explorerDialogParentId = "notepadModal";
     options.idsOpen = "notepadOpenFile";
     options.idsClose = ["closeButton", "closeXButton100"];
     options.idsSave = "notepadSave";
     options.idsSaveAs = "notepadSaveAs";
-    options.idEditorLabel = "notepadModalLabel"
+    options.idEditorLabel = "notepadModalLabel";
 
-    this.notepad = new MongoNotepad(options/* this, "Text Editor", ['.txt', null], "notepadModal" */);
+    this.notepad = new MongoNotepad(
+      options /* this, "Text Editor", ['.txt', null], "notepadModal" */
+    );
     this.registerEditor({ name: "Text Editor", editor: this.notepad });
     this.addNotepadMenuItem();
   }
@@ -3045,7 +3181,6 @@ class FileSystemServices {
     console.warn("setData (): Not re-implemented.");
     console.log(data);
   } */
-
 }
 
 /* 
@@ -3062,14 +3197,24 @@ const options = {}
 */
 
 class Editor {
-  constructor(obj/* fs, editorName, exts, explorerDialogParentId */) {
+  constructor(obj /* fs, editorName, exts, explorerDialogParentId */) {
     /* const idsOpen = "notepadOpenFile";
     const idsClose = ["closeButton", "closeXButton100"];
     const idsSave = "notepadSave";
     const idsSaveAs = "notepadSaveAs";
     const idEditorLabel = "notepadModalLabel"; */
 
-    const { fs, editorName, fileExtensions, explorerDialogParentId, idsOpen, idsClose, idsSave, idsSaveAs, idEditorLabel } = obj;
+    const {
+      fs,
+      editorName,
+      fileExtensions,
+      explorerDialogParentId,
+      idsOpen,
+      idsClose,
+      idsSave,
+      idsSaveAs,
+      idEditorLabel,
+    } = obj;
 
     const self = this;
     self.m_data = {};
@@ -3080,8 +3225,9 @@ class Editor {
 
     self.m_data.currentFileSaving = false;
     self.m_data.name = editorName; //e.g. "Text Editor"
-    self.m_data.editorSelector = !explorerDialogParentId ? $("body") : $(`#${explorerDialogParentId}`);
-
+    self.m_data.editorSelector = !explorerDialogParentId
+      ? $("body")
+      : $(`#${explorerDialogParentId}`);
 
     const extensions = fileExtensions;
 
@@ -3099,8 +3245,6 @@ class Editor {
       $(`#${idEditorLabel}`).addClass(classes.editorLabel);
     } */
 
-
-
     function addClassToElements(ids, classType) {
       let _ids = [];
       if (typeof ids === "string") {
@@ -3114,7 +3258,7 @@ class Editor {
     }
 
     idsClose && addClassToElements(idsClose, "close");
-    idsOpen && addClassToElements(idsOpen, "open")
+    idsOpen && addClassToElements(idsOpen, "open");
     idsSave && addClassToElements(idsSave, "save");
     idsSaveAs && addClassToElements(idsSaveAs, "saveAs");
     idEditorLabel && addClassToElements(idEditorLabel, "editorLabel");
@@ -3124,11 +3268,13 @@ class Editor {
         self.m_data.currentFileSaving = false;
         /* self.m_data.currentFileModified = false;
         --self.m_data.m_fs.modifiedFiles; */
-        self.currentFileModified(false)
+        self.currentFileModified(false);
 
         $(`.${classes.save}`).attr("disabled", true);
-        $(`.${classes.editorLabel}`).html(self.m_data.currentFilename + " - Mongo Notepad");
-        console.log("Saved")
+        $(`.${classes.editorLabel}`).html(
+          self.m_data.currentFilename + " - Mongo Notepad"
+        );
+        console.log("Saved");
       }
     });
 
@@ -3142,13 +3288,19 @@ class Editor {
     async function doSave() {
       if (self.m_data.currentFilename) {
         try {
-          if (!self.m_data.currentFileModified || self.m_data.currentFileSaving) {
+          if (
+            !self.m_data.currentFileModified ||
+            self.m_data.currentFileSaving
+          ) {
             return;
           }
           self.m_data.currentFileSaving = true;
           let el = $("#imageLoader").detach();
           self.m_data.editorSelector.append($(el));
-          await self.m_data.m_fs.save(self.m_data.currentFilename, self.getData());
+          await self.m_data.m_fs.save(
+            self.m_data.currentFilename,
+            self.getData()
+          );
           self.m_data.currentFileSaving = false;
           /* self.m_data.currentFileModified = false;
           --self.m_data.m_fs.modifiedFiles; */
@@ -3157,7 +3309,7 @@ class Editor {
           $("#explorerSaveAsModal").append($(el));
           $(window).trigger("afterEditorSave", [self.m_data.m_editor_name]);
         } catch (err) {
-          console.log(err)
+          console.log(err);
           self.m_data.currentFileSaving = false;
         }
       } else {
@@ -3165,17 +3317,14 @@ class Editor {
       }
     }
 
-
     this.currentFileModified = function (modified) {
-      if (modified === undefined)
-        return self.m_data.currentFileModified;
+      if (modified === undefined) return self.m_data.currentFileModified;
       self.m_data.currentFileModified = modified;
       /* if(modified){
         ++self.m_data.m_fs.modifiedFiles;
       }else{
         --self.m_data.m_fs.modifiedFiles;
       } */
-
 
       if (modified) {
         let title = $(`.${classes.editorLabel}`).html();
@@ -3186,63 +3335,60 @@ class Editor {
           $(`.${classes.save}`).attr("disabled", false);
         }
       }
-    }
+    };
 
     this.editorOpened = function (opened) {
-      if (opened === undefined)
-        return self.m_data.m_editor_opened;
+      if (opened === undefined) return self.m_data.m_editor_opened;
       self.m_data.m_editor_opened = opened;
       if (!opened) {
         self.m_data.m_fs.currentFilename(null);
         self.currentFileModified(false);
         self.currentFilename(null);
       }
-    }
+    };
 
     this.currentFilename = function (filename) {
-      if (filename === undefined)
-        return self.m_data.currentFilename;
+      if (filename === undefined) return self.m_data.currentFilename;
       self.m_data.currentFilename = filename;
-    }
+    };
 
     this.save = function () {
       /* if (!self.m_data.m_editor_opened) {
         return;
       } */
-      $("#explorerSaveAsModal").attr("editorName", self.m_data.name)
+      $("#explorerSaveAsModal").attr("editorName", self.m_data.name);
       doSave();
       return true;
-    }
+    };
 
     this.saveAs = function () {
       /* if (!self.m_data.m_editor_opened) {
         return;
       } */
       self.setExplorerDlgParent(self.m_data.editorSelector);
-      $("#explorerSaveAsModal").attr("editorName", self.m_data.name)
+      $("#explorerSaveAsModal").attr("editorName", self.m_data.name);
       self.m_data.m_fs.doSaveDlg();
-    }
-
+    };
 
     this.getExtensions = function () {
       return extensions;
-    }
+    };
 
     this.setExplorerDlgParent = function (parent) {
       let el = $("#explorerSaveAsModal").detach();
       parent.append($(el));
-    }
+    };
 
     this.resetEditor = function () {
       self.closeEditor && self.closeEditor();
       self.setExplorerDlgParent($("body"));
       self.editorOpened(false);
-    }
+    };
 
     this.editorClose = function (exitingFile = false) {
       const fname = self.m_data.currentFilename || "Untitled";
       if (self.currentFileModified()) {
-        const ans = confirm(`Do you want to save changes to ${fname}.`)
+        const ans = confirm(`Do you want to save changes to ${fname}.`);
         if (ans) {
           if (!exitingFile || fname == "Untitled") {
             saveAsFromClose = true;
@@ -3255,7 +3401,7 @@ class Editor {
         }
       }
       self.resetEditor();
-    }
+    };
 
     ///////////////////////////////////////////////////////////////////////////
 
@@ -3289,12 +3435,10 @@ class Editor {
     $(`.${classes.close}`).click(function () {
       self.editorClose();
     });
-
-
   }
 
   initEditor() {
-    $("#notepadSave").attr("disabled", true)
+    $("#notepadSave").attr("disabled", true);
     $("#notepadModalLabel").html("Untitled - Mongo Notepad");
     this.editorOpened(true);
     this.setExplorerDlgParent($("body"));
@@ -3310,7 +3454,7 @@ class Editor {
     this.m_data.m_fs.doExplorerDlg();
   }
 
-  //subclass must re-implement these methods. 
+  //subclass must re-implement these methods.
   getData() {
     console.error("getData (): Not re-implemented.");
   }
@@ -3319,14 +3463,11 @@ class Editor {
   setData(data, filename, ext, editorName) {
     //console.error("setData (): Not re-implemented.");
   }
-
 }
 
-
-
 class MongoNotepad extends Editor {
-  constructor(obj/* fs, name, exts, explorerDialogParentId */) {
-    super(obj/* fs, name, exts, explorerDialogParentId */);
+  constructor(obj /* fs, name, exts, explorerDialogParentId */) {
+    super(obj /* fs, name, exts, explorerDialogParentId */);
     const self = this;
 
     $(window).bind("fileSaved", function (e, filename, editorName) {
@@ -3338,7 +3479,6 @@ class MongoNotepad extends Editor {
     $("#myNotepad").on("input", function () {
       self.currentFileModified(true);
     });
-
   }
 
   initEditor() {
@@ -3353,7 +3493,7 @@ class MongoNotepad extends Editor {
   }
 
   closeEditor() {
-    $("#notepadModal").modal('hide');
+    $("#notepadModal").modal("hide");
   }
 
   getData() {
@@ -3370,7 +3510,6 @@ class MongoNotepad extends Editor {
   }
 }
 
-
 class ChooseEditor {
   constructor() {
     const self = this;
@@ -3380,20 +3519,36 @@ class ChooseEditor {
     //saveDlg.append($('<div id="chooseEditorModal" class="modal fade" role="dialog" data-backdrop="static" data-keyboard="false"> <div class="modal-dialog"> <!-- Modal content--> <div class="modal-content"> <div class="modal-header"><button type="button" class="close" data-dismiss="modal">&times;</button> <h4 id="dlg-title" style="text-align: center;" class="modal-title">How would you like to open this file?</h4> </div> <div class="modal-body"><br> <div class="container"></div> <div class="row"> <div class="col-sm-1"></div> <div class="col-sm-10"> <div class="row"> <form id="chooseEditorTable" style="width: 100%;"> </form> </div> <br> <div class="row"> <label><input id="alwaysUse" type="checkbox"><span id="alwaysUseLabel"></span></label> </div> <br> <div class="row"> <div class="col-sm-6"><input type="button" id="chooseEditorCancel" class="btn btn-primary" value="Cancel" style="width: 100%" ; /></div> <div class="col-sm-6"><input type="button" id="chooseEditorOk" class="btn btn-primary" value="Ok" style="width: 100%" ; /></div> </div> </div> </div> </div> </div> </div> </div>'));
 
     function addToChooseEditorModal(editorName, checked = false) {
-      const valueName = editorName.replaceAll(" ", "-")
+      const valueName = editorName.replaceAll(" ", "-");
       if (checked) {
-        $("#chooseEditorTable").append($('<label><input type="radio" name="ChooseEditor" value=' + valueName + ' checked>' + editorName + '</label><br>'));
+        $("#chooseEditorTable").append(
+          $(
+            '<label><input type="radio" name="ChooseEditor" value=' +
+              valueName +
+              " checked>" +
+              editorName +
+              "</label><br>"
+          )
+        );
       } else {
-        $("#chooseEditorTable").append($('<label><input type="radio" name="ChooseEditor" value=' + valueName + '>' + editorName + '</label><br>'));
+        $("#chooseEditorTable").append(
+          $(
+            '<label><input type="radio" name="ChooseEditor" value=' +
+              valueName +
+              ">" +
+              editorName +
+              "</label><br>"
+          )
+        );
       }
-
     }
-
-
 
     function init(editors) {
       for (let i = 0; i < editors.length; ++i) {
-        addToChooseEditorModal(editors[i].editor.m_data.name, i == 0 ? true : false)
+        addToChooseEditorModal(
+          editors[i].editor.m_data.name,
+          i == 0 ? true : false
+        );
       }
       initialized = true;
     }
@@ -3404,7 +3559,7 @@ class ChooseEditor {
           delete choiceStore[ext];
           var radioValue = $("input[name='ChooseEditor']:checked").val();
           if (radioValue) {
-            radioValue = radioValue.replaceAll("-", " ")
+            radioValue = radioValue.replaceAll("-", " ");
             for (let i = 0; i < editors.length; ++i) {
               if (editors[i].name === radioValue) {
                 if ($("#alwaysUse")[0].checked) {
@@ -3417,34 +3572,30 @@ class ChooseEditor {
           }
           $("#chooseEditorModal").modal("hide");
           return reject(null);
-
         });
-        $("#alwaysUseLabel").html(`Always use this app to open ${ext} fles`)
+        $("#alwaysUseLabel").html(`Always use this app to open ${ext} fles`);
         $("#chooseEditorModal").modal("show");
-      })
-
-    }
+      });
+    };
 
     this.chooseEditorByExt = function (editors, ext) {
       return new Promise(async (resolve, reject) => {
         if (!initialized) {
-          init(editors)
+          init(editors);
         }
 
         try {
           const edt = await self.doChooseEditorByExt(editors, ext);
-          resolve(edt)
+          resolve(edt);
         } catch (err) {
-          reject(err)
+          reject(err);
         }
-
-      })
-
-    }
+      });
+    };
 
     this.getEditorStoredChoice = function (ext) {
       return choiceStore[ext] || null;
-    }
+    };
 
     this.getEditorByExt = function (editors, ext) {
       return new Promise(async (resolve, reject) => {
@@ -3453,7 +3604,7 @@ class ChooseEditor {
           return resolve(storedEditor);
         }
         if (!initialized) {
-          init(editors)
+          init(editors);
         }
 
         let availableEditors = [];
@@ -3481,16 +3632,12 @@ class ChooseEditor {
 
         try {
           const edt = await self.doChooseEditorByExt(editors, ext);
-          resolve(edt)
+          resolve(edt);
         } catch (err) {
-          reject(err)
+          reject(err);
         }
-
-      })
-
-    }
-
-
+      });
+    };
   }
 }
 
