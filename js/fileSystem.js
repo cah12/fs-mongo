@@ -6,6 +6,7 @@
  *Copyright (c) 2013-2015 Sudhanshu Yadav.
  *Dual licensed under the MIT and GPL licenses
  */
+/*
 (function ($, window, document, undefined) {
   "use strict";
 
@@ -870,6 +871,8 @@
     },
   };
 })(jQuery, window, document);
+
+*/
 
 /* ********************************************************************************************************************** */
 /* ******************************contextmenu end************************************************************************** */
